@@ -1,3 +1,3 @@
-# aws-tools
+# AWS Tools
 
 TODO
