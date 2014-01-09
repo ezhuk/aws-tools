@@ -1,8 +1,21 @@
 #!/usr/bin/env python
-#
 # Copyright (c) 2013 Eugene Zhuk.
 # Use of this source code is governed by the MIT license that can be found
 # in the LICENSE file.
+
+"""Configures AWS Elastic Load Balancer (ELB) SSL settings.
+
+A tool to properly configure SSL settings for AWS load balancers. Even
+though ELB supports TLS v1.2 and v1.1 protocols and certain recommended
+ciphers, they are not enabled by default.
+
+This script creates a new SSL policy with the correct TLS versions and
+ciphers enabled and applies it to the default HTTPS listener (port 443)
+on the load balancer.
+
+Usage:
+    ./elb_configure_ssl_policy <load_balancer>
+"""
 
 import optparse
 import subprocess
@@ -11,6 +24,21 @@ import time
 
 
 def create_policy(load_balancer, policy_name):
+    """Creates a new SSL policy for the specified load balancer.
+
+    Enables the most recent and more secure TLS v1.2 and v1.1 protocols
+    and strong ciphersuite by default. Since AWS ELB does not seem to
+    support ECDHE ciphers at this time, forward secrecy is provided by
+    the DHE suite.
+
+    Args:
+        load_balancer: The name of the load balancer to associate the
+            newly created policy with.
+        policy_name: The name of the policy to create.
+
+    Returns:
+        The status code that is set to 0 on success and 1 otherwise.
+    """
     proc = subprocess.Popen(['aws',
         'elb',
         'create-load-balancer-policy',
@@ -43,6 +71,19 @@ def create_policy(load_balancer, policy_name):
     return 0
 
 def set_policy(load_balancer, policy_name):
+    """Sets the SSL policy.
+
+    Enables a policy for the default HTTPS listener (port 443) on the
+    specified load balancer.
+
+    Args:
+        load_balancer: The name of the AWS load balancer the policy is
+            associated with.
+        policy_name: The name of the policy to enable.
+
+    Returns:
+        The status code that is set to 0 on success and 1 otherwise.
+    """
     proc = subprocess.Popen(['aws',
         'elb',
         'set-load-balancer-policies-of-listener',
@@ -66,14 +107,19 @@ def main():
         return 1
 
     load_balancer = args[0]
-    policy_name = 'SSLNegotiationPolicy-' + load_balancer + '-' + time.strftime('%Y%m%d%H%M%S', time.gmtime())
+    policy_name = 'SSLNegotiationPolicy-' +
+        load_balancer +
+        '-' +
+        time.strftime('%Y%m%d%H%M%S', time.gmtime())
 
     if create_policy(load_balancer, policy_name):
-        print '[ERROR] could not create \'{0}\' for \'{1}\''.format(policy_name, load_balancer)
+        print '[ERROR] could not create \'{0}\' for \'{1}\''.format(policy_name,
+            load_balancer)
         return 1
 
     if set_policy(load_balancer, policy_name):
-        print '[ERROR] could not set \'{0}\' for \'{1}\''.format(policy_name, load_balancer)
+        print '[ERROR] could not set \'{0}\' for \'{1}\''.format(policy_name,
+            load_balancer)
         return 1
 
     return 0
