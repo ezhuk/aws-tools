@@ -70,6 +70,7 @@ def create_policy(load_balancer, policy_name):
 
     return 0
 
+
 def set_policy(load_balancer, policy_name):
     """Sets the SSL policy.
 
@@ -98,15 +99,20 @@ def set_policy(load_balancer, policy_name):
 
     return 0
 
+
 def main():
     parser = optparse.OptionParser('Usage: %prog <load_balancer> [options]')
     (options, args) = parser.parse_args()
 
+    # Make sure the load balancer name is specified.
     if len(args) != 1:
         parser.print_help()
         return 1
 
     load_balancer = args[0]
+
+    # Append the current timestamp to the policy name to make sure it
+    # is somewhat unique and keep track of when changes are made.
     policy_name = 'SSLNegotiationPolicy-' +
         load_balancer +
         '-' +
