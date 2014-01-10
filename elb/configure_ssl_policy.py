@@ -14,7 +14,7 @@ ciphers enabled and applies it to the default HTTPS listener (port 443)
 on the load balancer.
 
 Usage:
-    ./elb_configure_ssl_policy <load_balancer>
+    ./configure_ssl_policy <load_balancer>
 """
 
 import optparse
