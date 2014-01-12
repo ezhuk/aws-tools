@@ -19,6 +19,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 
 def get_running_instances(group):
@@ -40,24 +41,36 @@ def get_running_instances(group):
 
     instances = set()
     doc = json.loads(out)
-    for node in doc['Reservations'][0]['Instances']:
-        instances.add(node['PrivateDnsName'])
+    if 0 != len(doc['Reservations']):
+        for node in doc['Reservations'][0]['Instances']:
+            instances.add(node['PrivateDnsName'])
 
     return instances
+
+
+def read_file(path):
+    """Returns the content of an entire file.
+    """
+    with open(path) as f:
+        return f.read()
+
+
+def save_file(path, data):
+    """Writes data into a file specified by its path.
+    """
+    with open(path, 'w') as f:
+        for line in data:
+            f.write(line)
 
 
 def restart_haproxy(config):
     """Restarts haproxy with zero downtime.
     """
     pidfile = '/var/run/haproxy.pid'
-    f = open(pidfile)
-    data = f.read()
-    f.close()
-
     proc = subprocess.Popen(['/usr/sbin/haproxy',
         '-f', config,
         '-p', pidfile,
-        '-sf', data],
+        '-sf', read_file(pidfile)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -79,19 +92,24 @@ def main():
         parser.print_help()
         return 1
 
-    instances = get_running_instances(opts.group)
-    if 0 != len(instances):
-        src = open(opts.config)
-#        dst = open(opts.config + '.tmp', 'w')
-        for line in src:
+    config = list()
+    old = set()
+    with open(opts.config) as f:
+        for line in f:
             p = re.match(r'[^#](\s+)server(\s+)(\w+)(\s+)([^\s:]+)(.*)', line)
-#            if p:
-#                TODO
-#            else:
-#                dst.write(line)
+            if p:
+                old.add(p.groups()[4])
+            else:
+                config.append(line)
 
-#        os.rename(opts.config + '.tmp', opts.config)
-#        restart_aproxy(opts.config)
+    new = get_running_instances(opts.group)
+    if sorted(new) != sorted(old):
+        for pp, item in enumerate(new):
+            config.append('    server app{0} {1} check\n'.format(pp, item))
+
+        os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S', time.gmtime()))
+        save_file(opts.config, config)
+        restart_haproxy(opts.config)
 
     return 0
 
