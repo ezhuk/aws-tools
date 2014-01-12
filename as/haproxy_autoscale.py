@@ -16,6 +16,7 @@ Usage:
 import json
 import optparse
 import os
+import re
 import subprocess
 import sys
 
@@ -29,7 +30,7 @@ def get_running_instances(group):
         'describe-instances',
         '--filters','['
             '{"Name":"instance.group-id","Values":["' + group + '"]},'
-            '{"Name":"instance-state-name","Values":["stopped"]}'
+            '{"Name":"instance-state-name","Values":["running"]}'
         ']'],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
@@ -80,11 +81,17 @@ def main():
 
     instances = get_running_instances(opts.group)
     if 0 != len(instances):
-#        src = open(opts.config)
+        src = open(opts.config)
 #        dst = open(opts.config + '.tmp', 'w')
-#        for line in src:
-#            print line,
-#            dst.write(line)
+        for line in src:
+            p = re.match(r'[^#](\s+)server(\s+)(\w+)(\s+)([^\s:]+)(.*)', line)
+#            if p:
+#                TODO
+#            else:
+#                dst.write(line)
+
+#        os.rename(opts.config + '.tmp', opts.config)
+#        restart_aproxy(opts.config)
 
     return 0
 
