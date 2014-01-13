@@ -138,8 +138,6 @@ def create_metric_alarm(options):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        print out
-        print err
         return 1
 
     return 0

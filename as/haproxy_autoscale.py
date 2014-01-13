@@ -82,7 +82,7 @@ def restart_haproxy(config):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog <options>')
-    parser.add_option('-c', '--config', dest='config', default='haproxy.cfg',
+    parser.add_option('-c', '--config', dest='config', default='/etc/haproxy/haproxy.cfg',
         help='HAProxy configuration file to use.')
     parser.add_option('-g', '--group', dest='group',
         help='The ID of a security group.')

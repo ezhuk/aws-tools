@@ -119,13 +119,13 @@ def main():
         time.strftime('%Y%m%d%H%M%S', time.gmtime())
 
     if create_policy(load_balancer, policy_name):
-        print '[ERROR] could not create \'{0}\' for \'{1}\''.format(policy_name,
-            load_balancer)
+        print '[ERROR] could not create \'{0}\' for \'{1}\'' \
+            .format(policy_name, load_balancer)
         return 1
 
     if set_policy(load_balancer, policy_name):
-        print '[ERROR] could not set \'{0}\' for \'{1}\''.format(policy_name,
-            load_balancer)
+        print '[ERROR] could not set \'{0}\' for \'{1}\'' \
+            .format(policy_name, load_balancer)
         return 1
 
     return 0
