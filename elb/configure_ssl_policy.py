@@ -23,7 +23,19 @@ import sys
 import time
 
 
-def create_policy(load_balancer, policy_name):
+class Policy(object):
+    """Represents an SSL policy.
+    """
+
+    def __init__(self, load_balancer):
+        # Append the current timestamp to the policy name to make sure
+        # it is somewhat unique and keep track of when changes are made.
+        self.name = 'SSLNegotiationPolicy-{0}-{1}' \
+            .format(load_balancer, time.strftime('%Y%m%d%H%M%S', time.gmtime()))
+        self.load_balancer = load_balancer
+
+
+def create_policy(policy):
     """Creates a new SSL policy for the specified load balancer.
 
     Enables the most recent and more secure TLS v1.2 and v1.1 protocols
@@ -32,9 +44,7 @@ def create_policy(load_balancer, policy_name):
     the DHE suite.
 
     Args:
-        load_balancer: The name of the load balancer to associate the
-            newly created policy with.
-        policy_name: The name of the policy to create.
+        policy: The policy object.
 
     Returns:
         The status code that is set to 0 on success and 1 otherwise.
@@ -42,8 +52,8 @@ def create_policy(load_balancer, policy_name):
     proc = subprocess.Popen(['aws',
         'elb',
         'create-load-balancer-policy',
-        '--load-balancer-name', load_balancer,
-        '--policy-name', policy_name,
+        '--load-balancer-name', policy.load_balancer,
+        '--policy-name', policy.name,
         '--policy-type-name', 'SSLNegotiationPolicyType',
         '--policy-attributes', '['
             '{"AttributeName":"Protocol-SSLv2","AttributeValue":"false"},'
@@ -71,16 +81,14 @@ def create_policy(load_balancer, policy_name):
     return 0
 
 
-def set_policy(load_balancer, policy_name):
+def set_policy(policy):
     """Sets the SSL policy.
 
     Enables a policy for the default HTTPS listener (port 443) on the
     specified load balancer.
 
     Args:
-        load_balancer: The name of the AWS load balancer the policy is
-            associated with.
-        policy_name: The name of the policy to enable.
+        policy: The policy object.
 
     Returns:
         The status code that is set to 0 on success and 1 otherwise.
@@ -88,9 +96,9 @@ def set_policy(load_balancer, policy_name):
     proc = subprocess.Popen(['aws',
         'elb',
         'set-load-balancer-policies-of-listener',
-        '--load-balancer-name', load_balancer,
+        '--load-balancer-name', policy.load_balancer,
         '--load-balancer-port', '443',
-        '--policy-names', policy_name],
+        '--policy-names', policy.name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -109,23 +117,16 @@ def main():
         parser.print_help()
         return 1
 
-    load_balancer = args[0]
+    policy = Policy(args[ 0 ])
 
-    # Append the current timestamp to the policy name to make sure it
-    # is somewhat unique and keep track of when changes are made.
-    policy_name = 'SSLNegotiationPolicy-' +
-        load_balancer +
-        '-' +
-        time.strftime('%Y%m%d%H%M%S', time.gmtime())
-
-    if create_policy(load_balancer, policy_name):
+    if create_policy(policy):
         print '[ERROR] could not create \'{0}\' for \'{1}\'' \
-            .format(policy_name, load_balancer)
+            .format(policy.name, policy.load_balancer)
         return 1
 
-    if set_policy(load_balancer, policy_name):
+    if set_policy(policy):
         print '[ERROR] could not set \'{0}\' for \'{1}\'' \
-            .format(policy_name, load_balancer)
+            .format(policy.name, policy.load_balancer)
         return 1
 
     return 0
