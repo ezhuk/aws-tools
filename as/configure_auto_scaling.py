@@ -19,6 +19,10 @@ import subprocess
 import sys
 
 
+class Error(Exception):
+    pass
+
+
 def create_launch_configuration(options):
     """Creates a new launch configuration.
 
@@ -30,7 +34,7 @@ def create_launch_configuration(options):
         A dictionary that specifies necessary configuration options.
 
     Returns:
-        The status code that is set to 0 on success and 1 otherwise.
+        The status code that is set to 0 on success.
     """
     proc = subprocess.Popen(['aws',
         'autoscaling',
@@ -44,7 +48,7 @@ def create_launch_configuration(options):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return 1
+        raise Error('could not create \'{0}\''.format(options['launch_config']))
 
     return 0
 
@@ -59,7 +63,7 @@ def create_auto_scaling_group(options):
         A dictionary that specifies necessary configuration options.
 
     Returns:
-        The status code that is set to 0 on success and 1 otherwise.
+        The status code that is set to 0 on success.
     """
     proc = subprocess.Popen(['aws',
         'autoscaling',
@@ -68,13 +72,13 @@ def create_auto_scaling_group(options):
         '--launch-configuration-name', options['launch_config'],
         '--min-size', options['min'],
         '--max-size', options['max'],
-        '--availability-zones', options['zone']],
+        '--availability-zones', options['zone'],
         '--load-balancer-names', options['load_balancer']],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return 1
+        raise Error('could not create \'{0}\''.format(options['auto_scaling_group']))
 
     return 0
 
@@ -89,8 +93,7 @@ def create_scaling_policy(options):
         A dictionary that specifies necessary configuration options.
 
     Returns:
-        Name of the newly created scaling policy on success or an empty
-        string otherwise.
+        Name of the newly created scaling policy on success.
     """
     proc = subprocess.Popen(['aws',
         'autoscaling',
@@ -103,7 +106,7 @@ def create_scaling_policy(options):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return ''
+        raise Error('could not create \'{0}\''.format(options['name']))
 
     doc = json.loads(out)
     return doc['PolicyARN']
@@ -138,7 +141,7 @@ def create_metric_alarm(options):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return 1
+        raise Error('could not create \'{0}\''.format(options['name']))
 
     return 0
 
@@ -186,54 +189,44 @@ def main():
     options['launch_config'] = options['name'] + '-LC'
     options['auto_scaling_group'] = options['name'] + '-ASG'
 
-    if create_launch_configuration(options):
-        print '[ERROR] could not create launch configuration'
-        return 1
+    try:
+        create_launch_configuration(options)
+        create_auto_scaling_group(options)
 
-    if create_auto_scaling_group(options):
-        print '[ERROR] could not create auto scaling group'
-        return 1
+        policy_options = {
+            'auto_scaling_group': options['auto_scaling_group'],
+            'name': options['name'] + '-SP-UP',
+            'adjustment': '1'
+        }
+        arn = create_scaling_policy(policy_options)
 
-    policy_options = {
-        'auto_scaling_group': options['auto_scaling_group'],
-        'name': options['name'] + '-SP-UP',
-        'adjustment': '1'
-    }
-    arn = create_scaling_policy(policy_options)
-    if not arn:
-        print '[ERROR] could not create scaling policy'
-        return 1
+        alarm_options = {
+            'auto_scaling_group': options['auto_scaling_group'],
+            'name': options['name'] + '-MA-CPU-HIGH',
+            'action': arn,
+            'threshold': '60',
+            'operator': 'GreaterThanThreshold'
+        }
+        create_metric_alarm(alarm_options)
 
-    alarm_options = {
-        'auto_scaling_group': options['auto_scaling_group'],
-        'name': options['name'] + '-MA-CPU-HIGH',
-        'action': arn,
-        'threshold': '60',
-        'operator': 'GreaterThanThreshold'
-    }
-    if create_metric_alarm(alarm_options):
-        print '[ERROR] could not create metric alarm'
-        return 1
+        policy_options = {
+            'auto_scaling_group': options['auto_scaling_group'],
+            'name': options['name'] + '-SP-DOWN',
+            'adjustment': '-1'
+        }
+        arn = create_scaling_policy(policy_options)
 
-    policy_options = {
-        'auto_scaling_group': options['auto_scaling_group'],
-        'name': options['name'] + '-SP-DOWN',
-        'adjustment': '-1'
-    }
-    arn = create_scaling_policy(policy_options)
-    if not arn:
-        print '[ERROR] could not create scaling policy'
-        return 1
+        alarm_options = {
+            'auto_scaling_group': options['auto_scaling_group'],
+            'name': options['name'] + '-MA-CPU-LOW',
+            'action': arn,
+            'threshold': '40',
+            'operator': 'LessThanThreshold'
+        }
+        create_metric_alarm(alarm_options)
 
-    alarm_options = {
-        'auto_scaling_group': options['auto_scaling_group'],
-        'name': options['name'] + '-MA-CPU-LOW',
-        'action': arn,
-        'threshold': '40',
-        'operator': 'LessThanThreshold'
-    }
-    if create_metric_alarm(alarm_options):
-        print '[ERROR] could not create metric alarm'
+    except Error, err:
+        sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
 
     return 0

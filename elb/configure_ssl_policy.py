@@ -23,10 +23,11 @@ import sys
 import time
 
 
-class Policy(object):
-    """Represents an SSL policy.
-    """
+class Error(Exception):
+    pass
 
+
+class Policy(object):
     def __init__(self, load_balancer):
         # Append the current timestamp to the policy name to make sure
         # it is somewhat unique and keep track of when changes are made.
@@ -47,7 +48,7 @@ def create_policy(policy):
         policy: The policy object.
 
     Returns:
-        The status code that is set to 0 on success and 1 otherwise.
+        The status code that is set to 0 on success.
     """
     proc = subprocess.Popen(['aws',
         'elb',
@@ -76,7 +77,7 @@ def create_policy(policy):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return 1
+        raise Error('could not create \'{0}\''.format(policy.name))
 
     return 0
 
@@ -91,7 +92,7 @@ def set_policy(policy):
         policy: The policy object.
 
     Returns:
-        The status code that is set to 0 on success and 1 otherwise.
+        The status code that is set to 0 on success.
     """
     proc = subprocess.Popen(['aws',
         'elb',
@@ -103,7 +104,7 @@ def set_policy(policy):
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
     if 0 != proc.returncode:
-        return 1
+        raise Error('could not set \'{0}\''.format(policy.name))
 
     return 0
 
@@ -117,16 +118,14 @@ def main():
         parser.print_help()
         return 1
 
-    policy = Policy(args[0])
+    try:
+        policy = Policy(args[0])
 
-    if create_policy(policy):
-        print '[ERROR] could not create \'{0}\' for \'{1}\'' \
-            .format(policy.name, policy.load_balancer)
-        return 1
+        create_policy(policy)
+        set_policy(policy)
 
-    if set_policy(policy):
-        print '[ERROR] could not set \'{0}\' for \'{1}\'' \
-            .format(policy.name, policy.load_balancer)
+    except Error, err:
+        sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
 
     return 0
