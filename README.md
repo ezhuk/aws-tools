@@ -28,8 +28,8 @@ period and shutdown an instance when it goes below 40%.
 
 Keeps track of EC2 instances behind [HAProxy](http://haproxy.1wt.eu/) used as
 a load balancer and updates its configuration if they change. This allows to
-automatically direct traffic to currently running instances and removes the
-ones that are no longer used.
+automatically direct traffic to currently running instances and remove the ones
+that are no longer used.
 
 This tool is supposed to be run periodically (e.g., every minute or so) and
 can be configured as a cron job as follows:
@@ -47,9 +47,9 @@ ciphers they are not enabled by default for some reasons.
 
 
 This script enables the most recent and more secure TLS v1.2 and v1.1 versions
-and strong ciphersuite. Since ELB does not seem to support ECDHE at this time,
-forward secrecy is provided by the DHE suite which can be disabled if performance
-is of concern.
+and strong ciphers. Since ELB does not seem to support ECDHE at this time, forward
+secrecy is provided by the DHE suite which can be disabled if performance is of
+concern.
 
 ```bash
 ./configure_ssl_policy.py MyLoadBalancer
