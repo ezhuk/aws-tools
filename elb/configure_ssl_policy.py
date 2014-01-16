@@ -123,7 +123,6 @@ def main():
 
         create_policy(policy)
         set_policy(policy)
-
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1

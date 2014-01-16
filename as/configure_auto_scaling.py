@@ -224,7 +224,6 @@ def main():
             'operator': 'LessThanThreshold'
         }
         create_metric_alarm(alarm_options)
-
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
