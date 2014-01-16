@@ -117,7 +117,7 @@ def main():
         parser.print_help()
         return 1
 
-    policy = Policy(args[ 0 ])
+    policy = Policy(args[0])
 
     if create_policy(policy):
         print '[ERROR] could not create \'{0}\' for \'{1}\'' \
