@@ -17,6 +17,7 @@ Usage:
     ./configure_ssl_policy <load_balancer>
 """
 
+import json
 import optparse
 import subprocess
 import sys
@@ -29,12 +30,30 @@ class Error(Exception):
 
 class Policy(object):
     def __init__(self, load_balancer):
+        self.type = 'SSLNegotiationPolicyType'
         # Append the current timestamp to the policy name to make sure
         # it is somewhat unique and keep track of when changes are made.
         self.name = 'SSLNegotiationPolicy-{0}-{1}' \
             .format(load_balancer, time.strftime('%Y%m%d%H%M%S', time.gmtime()))
         self.load_balancer = load_balancer
-
+        # Policy attributes specifying SSL/TLS protocols and ciphers.
+        self.attributes = {
+            'Protocol-SSLv2': False,
+            'Protocol-SSLv3': True,
+            'Protocol-TLSv1': True,
+            'Protocol-TLSv1.1': True,
+            'Protocol-TLSv1.2': True,
+            'DHE-RSA-AES128-GCM-SHA256': True,
+            'DHE-RSA-AES256-GCM-SHA384': True,
+            'AES128-GCM-SHA256': True,
+            'AES256-GCM-SHA384': True,
+            'AES128-SHA': True,
+            'AES256-SHA': True,
+            'DHE-RSA-AES128-SHA': True,
+            'DHE-RSA-AES256-SHA': True,
+            'RC4-MD5': False,
+            'DES-CBC3-SHA': False
+        }
 
 def create_policy(policy):
     """Creates a new SSL policy for the specified load balancer.
@@ -55,24 +74,10 @@ def create_policy(policy):
         'create-load-balancer-policy',
         '--load-balancer-name', policy.load_balancer,
         '--policy-name', policy.name,
-        '--policy-type-name', 'SSLNegotiationPolicyType',
-        '--policy-attributes', '['
-            '{"AttributeName":"Protocol-SSLv2","AttributeValue":"false"},'
-            '{"AttributeName":"Protocol-TLSv1","AttributeValue":"true"},'
-            '{"AttributeName":"Protocol-SSLv3","AttributeValue":"true"},'
-            '{"AttributeName":"Protocol-TLSv1.1","AttributeValue":"true"},'
-            '{"AttributeName":"Protocol-TLSv1.2","AttributeValue":"true"},'
-            '{"AttributeName":"DHE-RSA-AES128-GCM-SHA256","AttributeValue":"true"},'
-            '{"AttributeName":"DHE-RSA-AES256-GCM-SHA384","AttributeValue":"true"},'
-            '{"AttributeName":"AES128-GCM-SHA256","AttributeValue":"true"},'
-            '{"AttributeName":"AES256-GCM-SHA384","AttributeValue":"true"},'
-            '{"AttributeName":"AES128-SHA","AttributeValue":"true"},'
-            '{"AttributeName":"AES256-SHA","AttributeValue":"true"},'
-            '{"AttributeName":"DHE-RSA-AES128-SHA","AttributeValue":"true"},'
-            '{"AttributeName":"DHE-RSA-AES256-SHA","AttributeValue":"true"},'
-            '{"AttributeName":"RC4-MD5","AttributeValue":"false"},'
-            '{"AttributeName":"DES-CBC3-SHA","AttributeValue":"false"}'
-        ']'],
+        '--policy-type-name', policy.type,
+        '--policy-attributes', json.dumps([
+            {"AttributeName":k,"AttributeValue":v}
+            for k, v in policy.attributes.iteritems()])],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
