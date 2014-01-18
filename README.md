@@ -38,6 +38,17 @@ can be configured as a cron job as follows:
 */1 * * * * user /usr/sbin/haproxy_autoscale.py --group MySecurityGroup
 ```
 
+#### configure_billing_alert.py
+
+Sets up a billing alert to keep track of monthly charges across AWS services so
+that an email notification gets sent to the specified email address whenever the
+estimated monthly charges exceed the specified threshold. Note that metric data
+monitoring must be enabled in billing preferences prior to configuring this alert.
+
+```bash
+./configure_billing_alert.py --email name@example.com --threshold 1000
+```
+
 #### configure_ssl_policy.py
 
 Configures certain [recommended](https://wiki.mozilla.org/Security/Server_Side_TLS)
