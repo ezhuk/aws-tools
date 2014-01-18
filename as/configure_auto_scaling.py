@@ -93,7 +93,7 @@ def create_scaling_policy(options):
         A dictionary that specifies necessary configuration options.
 
     Returns:
-        Name of the newly created scaling policy on success.
+        ARN of the newly created scaling policy on success.
     """
     proc = subprocess.Popen(['aws',
         'autoscaling',

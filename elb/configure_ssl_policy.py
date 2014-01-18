@@ -14,7 +14,7 @@ ciphers enabled and applies it to the default HTTPS listener (port 443)
 on the load balancer.
 
 Usage:
-    ./configure_ssl_policy <load_balancer>
+    ./configure_ssl_policy.py <load_balancer>
 """
 
 import json
@@ -116,7 +116,7 @@ def set_policy(policy):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog <load_balancer> [options]')
-    (options, args) = parser.parse_args()
+    (opts, args) = parser.parse_args()
 
     # Make sure the load balancer name is specified.
     if len(args) != 1:
