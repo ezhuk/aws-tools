@@ -20,6 +20,8 @@ period and shutdown an instance when it goes below 40%.
     --group MySecurityGroup \
     --min 2 \
     --max 8 \
+    --min-threshold 30 \
+    --max-threshold 70 \
     --zone us-west-1a \
     --load-balancer MyLoadBalancer
 ```
