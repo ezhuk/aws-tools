@@ -172,6 +172,12 @@ def main():
              'is required.')
     parser.add_option('-l', '--load-balancer', dest='load_balancer',
         help='The name of an existing AWS load balancer to use, if any.')
+    parser.add_option('--min-threshold', dest='min_threshold', default='40',
+        help='The minimum CPU utilization threshold that triggers an alarm. '
+             'This option is not required and is set to 60% by default.')
+    parser.add_option('--max-threshold', dest='max_threshold', default='60',
+        help='The maximum CPU utilization threshold that triggers an alarm. '
+             'This option is not required and is set to 40% by default.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 1:
@@ -204,7 +210,7 @@ def main():
             'auto_scaling_group': options['auto_scaling_group'],
             'name': options['name'] + '-MA-CPU-HIGH',
             'action': arn,
-            'threshold': '60',
+            'threshold': options['max_threshold'],
             'operator': 'GreaterThanThreshold'
         }
         create_metric_alarm(alarm_options)
@@ -220,7 +226,7 @@ def main():
             'auto_scaling_group': options['auto_scaling_group'],
             'name': options['name'] + '-MA-CPU-LOW',
             'action': arn,
-            'threshold': '40',
+            'threshold': options['min_threshold'],
             'operator': 'LessThanThreshold'
         }
         create_metric_alarm(alarm_options)
