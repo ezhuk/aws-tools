@@ -5,7 +5,8 @@
 
 """Confirms subscription to a topic.
 
-TODO
+This is used to confirm subscription of an HTTP endpoint to a topic
+created on AWS Simple Notification Service (SNS).
 
 Usage:
     ./confirm_subscription.py [options]
