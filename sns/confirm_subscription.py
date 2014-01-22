@@ -5,8 +5,9 @@
 
 """Confirms subscription to a topic.
 
-This is used to confirm subscription of an HTTP endpoint to a topic
-created on AWS Simple Notification Service (SNS).
+This is used to confirm a subscription of an HTTP endpoint to a topic
+created on AWS Simple Notification Service (SNS). It is supposed to
+run on the endpoint that is being subscribed.
 
 Usage:
     ./confirm_subscription.py [options]
@@ -19,6 +20,7 @@ import SimpleHTTPServer
 import SocketServer
 import sys
 import urllib2
+from xml.etree import ElementTree
 
 
 class Error(Exception):
@@ -46,10 +48,12 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             size = int(self.headers.getheader('content-length'))
             doc = json.loads(self.rfile.read(size))
+
             response = urllib2.urlopen(doc['SubscribeURL'])
-            html = response.read()
-            print html
-        except Error, err:
+            xml = ElementTree.XML(response.read())
+            arn = xml.find('ConfirmSubscriptionResult/SubscriptionArn')
+            print arn.text
+        except (Error, urllib2.HTTPError), err:
             self.send_response(404)
             self.send_header('Content-Length', '0')
             self.end_headers()
