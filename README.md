@@ -4,6 +4,8 @@ This is a set of auxiliary tools for Amazon Web Services (AWS).
 
 ## What's included
 
+### 1. Auto Scaling
+
 #### configure_auto_scaling.py
 
 Configures AWS Auto Scaling to automatically manage system capacity based on
@@ -40,6 +42,8 @@ can be configured as a cron job as follows:
 */1 * * * * user /usr/sbin/haproxy_autoscale.py --group MySecurityGroup
 ```
 
+### 2. Billing
+
 #### configure_billing_alert.py
 
 Sets up a billing alert to keep track of monthly charges across AWS services so
@@ -50,6 +54,8 @@ monitoring must be enabled in billing preferences prior to configuring this aler
 ```bash
 ./configure_billing_alert.py --email name@example.com --threshold 1000
 ```
+
+### 3. Elastic Load Balancing
 
 #### configure_ssl_policy.py
 
@@ -67,6 +73,8 @@ concern.
 ```bash
 ./configure_ssl_policy.py MyLoadBalancer
 ```
+
+### 4. Simple Notification Service
 
 #### confirm_subscription.py
 
