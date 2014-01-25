@@ -42,17 +42,20 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            message_type = self.headers.getheader('x-amz-sns-message-type')
-            if message_type != 'SubscriptionConfirmation':
-                raise Error('unsupported message type \'{0}\''.format(message_type))
-
             size = int(self.headers.getheader('content-length'))
             doc = json.loads(self.rfile.read(size))
 
-            response = urllib2.urlopen(doc['SubscribeURL'])
-            xml = ElementTree.XML(response.read())
-            arn = xml.find('ConfirmSubscriptionResult/SubscriptionArn')
-            print arn.text
+            message_type = self.headers.getheader('x-amz-sns-message-type')
+            if message_type == 'SubscriptionConfirmation':
+                response = urllib2.urlopen(doc['SubscribeURL'])
+                xml = ElementTree.XML(response.read())
+                arn = xml.find('ConfirmSubscriptionResult/SubscriptionArn')
+                print arn.text
+            elif message_type == 'Notification':
+                print 'Subject: \'{0}\'\nMessage: \'{1}\'\nTime: \'{2}\'' \
+                    .format(doc['Subject'], doc['Message'], doc['Timestamp'])
+            else:
+                raise Error('unsupported message type \'{0}\''.format(message_type))
         except (Error, urllib2.HTTPError), err:
             self.send_response(404)
             self.send_header('Content-Length', '0')
