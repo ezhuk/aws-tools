@@ -13,137 +13,20 @@ Usage:
     ./configure_auto_scaling.py <name> [options]
 """
 
+import boto.ec2.autoscale
+import boto.ec2.cloudwatch
 import json
 import optparse
 import subprocess
 import sys
+from boto.ec2.autoscale import LaunchConfiguration
+from boto.ec2.autoscale import AutoScalingGroup
+from boto.ec2.autoscale import ScalingPolicy
+from boto.ec2.cloudwatch import MetricAlarm
 
 
 class Error(Exception):
     pass
-
-
-def create_launch_configuration(options):
-    """Creates a new launch configuration.
-
-    The launch configuration name must be unique and the total number
-    of created configurations must be less than the maximum limit which
-    is set to 100 by default.
-
-    Args:
-        A dictionary that specifies necessary configuration options.
-
-    Returns:
-        The status code that is set to 0 on success.
-    """
-    proc = subprocess.Popen(['aws',
-        'autoscaling',
-        'create-launch-configuration',
-        '--launch-configuration-name', options['launch_config'],
-        '--image-id', options['image'],
-        '--key-name', options['key'],
-        '--security-groups', options['group'],
-        '--instance-type', options['type']],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not create \'{0}\''.format(options['launch_config']))
-
-    return 0
-
-
-def create_auto_scaling_group(options):
-    """Creates a new auto scaling group.
-
-    The auto scaling group name must be unique and the specified launch
-    configuration and load balancer must be created.
-
-    Args:
-        A dictionary that specifies necessary configuration options.
-
-    Returns:
-        The status code that is set to 0 on success.
-    """
-    proc = subprocess.Popen(['aws',
-        'autoscaling',
-        'create-auto-scaling-group',
-        '--auto-scaling-group-name', options['auto_scaling_group'],
-        '--launch-configuration-name', options['launch_config'],
-        '--min-size', options['min'],
-        '--max-size', options['max'],
-        '--availability-zones', options['zone'],
-        '--load-balancer-names', options['load_balancer']],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not create \'{0}\''.format(options['auto_scaling_group']))
-
-    return 0
-
-
-def create_scaling_policy(options):
-    """Creates a new scaling policy.
-
-    The specified auto scaling group the newly created policy will be
-    associated with must exist.
-
-    Args:
-        A dictionary that specifies necessary configuration options.
-
-    Returns:
-        ARN of the newly created scaling policy on success.
-    """
-    proc = subprocess.Popen(['aws',
-        'autoscaling',
-        'put-scaling-policy',
-        '--auto-scaling-group-name', options['auto_scaling_group'],
-        '--policy-name', options['name'],
-        '--scaling-adjustment', options['adjustment'],
-        '--adjustment-type', 'ChangeInCapacity'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not create \'{0}\''.format(options['name']))
-
-    doc = json.loads(out)
-    return doc['PolicyARN']
-
-
-def create_metric_alarm(options):
-    """Creates a new metric alarm.
-
-    The specified auto scaling group and action the newly created alarm
-    will be associated with must exist.
-
-    Args:
-        A dictionary that specifies necessary configuration options.
-
-    Returns:
-        The status code that is set to 0 on success and 1 otherwise.
-    """
-    proc = subprocess.Popen(['aws',
-        'cloudwatch',
-        'put-metric-alarm',
-        '--alarm-name', options['name'],
-        '--alarm-actions', options['action'],
-        '--metric-name', 'CPUUtilization',
-        '--namespace', 'AWS/EC2',
-        '--statistic', 'Average',
-        '--dimensions', '[{"Name":"AutoScalingGroupName","Value":"' + options['auto_scaling_group'] + '"}]',
-        '--period', '300',
-        '--evaluation-periods', '1',
-        '--threshold', options['threshold'],
-        '--comparison-operator', options['operator']],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not create \'{0}\''.format(options['name']))
-
-    return 0
 
 
 def main():
@@ -192,44 +75,63 @@ def main():
 
     options = vars(opts)
     options['name'] = args[0]
-    options['launch_config'] = options['name'] + '-LC'
     options['auto_scaling_group'] = options['name'] + '-ASG'
 
     try:
-        create_launch_configuration(options)
-        create_auto_scaling_group(options)
+        autoscale = boto.ec2.autoscale.connect_to_region('us-west-1')
 
-        policy_options = {
-            'auto_scaling_group': options['auto_scaling_group'],
-            'name': options['name'] + '-SP-UP',
-            'adjustment': '1'
-        }
-        arn = create_scaling_policy(policy_options)
+        lc = LaunchConfiguration(name=options['name'] + '-LC',
+            image_id=options['image'],
+            key_name=options['key'],
+            security_groups=[options['group']],
+            instance_type=options['type'])
+        autoscale.create_launch_configuration(lc)
 
-        alarm_options = {
-            'auto_scaling_group': options['auto_scaling_group'],
-            'name': options['name'] + '-MA-CPU-HIGH',
-            'action': arn,
-            'threshold': options['max_threshold'],
-            'operator': 'GreaterThanThreshold'
-        }
-        create_metric_alarm(alarm_options)
+        asg = AutoScalingGroup(name=options['auto_scaling_group'],
+            launch_config=lc,
+            availability_zones=[options['zone']],
+            load_balancers=[options['load_balancer']],
+            min_size=options['min'],
+            max_size=options['max'])
+        autoscale.create_auto_scaling_group(asg)
 
-        policy_options = {
-            'auto_scaling_group': options['auto_scaling_group'],
-            'name': options['name'] + '-SP-DOWN',
-            'adjustment': '-1'
-        }
-        arn = create_scaling_policy(policy_options)
+        pu = ScalingPolicy(name=options['name'] + '-SP-UP',
+            as_name=name=options['auto_scaling_group'],
+            scaling_adjustment=1,
+            adjustment_type='ChangeInCapacity')
+        autoscale.create_scaling_policy(pu)
 
-        alarm_options = {
-            'auto_scaling_group': options['auto_scaling_group'],
-            'name': options['name'] + '-MA-CPU-LOW',
-            'action': arn,
-            'threshold': options['min_threshold'],
-            'operator': 'LessThanThreshold'
-        }
-        create_metric_alarm(alarm_options)
+        cloudwatch = boto.ec2.cloudwatch.connect_to_region('us-west-1')
+
+        ah = MetricAlarm(name=options['name'] + '-MA-CPU-HIGH',
+            alarm_actions=[pu],
+            metric='CPUUtilization',
+            namespace='AWS/EC2',
+            statistic='Average',
+            dimensions={'AutoScalingGroupName': options['auto_scaling_group']},
+            period=300,
+            evaluation_periods=1,
+            threshold=int(options['max_threshold']),
+            comparison='>')
+        cloudwatch.create_alarm(ah)
+
+        pd = ScalingPolicy(name=options['name'] + '-SP-DOWN',
+            as_name=name=options['auto_scaling_group'],
+            scaling_adjustment=-1,
+            adjustment_type='ChangeInCapacity')
+        autoscale.create_scaling_policy(pd)
+
+        al = MetricAlarm(name=options['name'] + '-MA-CPU-LOW',
+            alarm_actions=[pd],
+            metric='CPUUtilization',
+            namespace='AWS/EC2',
+            statistic='Average',
+            dimensions={'AutoScalingGroupName': options['auto_scaling_group']},
+            period=300,
+            evaluation_periods=1,
+            threshold=int(options['min_threshold']),
+            comparison='<')
+        cloudwatch.create_alarm(al)
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1

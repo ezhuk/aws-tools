@@ -53,16 +53,16 @@ def main():
             raw_input('Please confirm subscription. Press [ENTER] when done...')
 
         cloudwatch = boto.ec2.cloudwatch.connect_to_region('us-east-1')
-        alarm = MetricAlarm(name='BillingAlarm-{0}'.format(threshold),
+        alarm = MetricAlarm(name='BillingAlarm-{0}'.format(opts.threshold),
             description='Estimated Monthly Charges',
             alarm_actions=[topic],
             metric='EstimatedCharges',
             namespace='AWS/Billing',
             statistic='Maximum',
-            dimensions={"Name":"Currency","Value":"USD"},
-            period='21600',
-            evaluation_periods='1',
-            threshold=opts.threshold,
+            dimensions={'Currency':'USD'},
+            period=21600,
+            evaluation_periods=1,
+            threshold=int(opts.threshold),
             comparison='>=')
         cloudwatch.create_alarm(alarm)
     except Error, err:
