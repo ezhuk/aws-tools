@@ -17,6 +17,7 @@ Usage:
     ./configure_ssl_policy.py <load_balancer>
 """
 
+import boto.ec2.elb
 import json
 import optparse
 import subprocess
@@ -28,16 +29,19 @@ class Error(Exception):
     pass
 
 
-class Policy(object):
-    def __init__(self, load_balancer):
-        self.type = 'SSLNegotiationPolicyType'
-        # Append the current timestamp to the policy name to make sure
-        # it is somewhat unique and keep track of when changes are made.
-        self.name = 'SSLNegotiationPolicy-{0}-{1}' \
-            .format(load_balancer, time.strftime('%Y%m%d%H%M%S', time.gmtime()))
-        self.load_balancer = load_balancer
-        # Policy attributes specifying SSL/TLS protocols and ciphers.
-        self.attributes = {
+def main():
+    parser = optparse.OptionParser('Usage: %prog <load_balancer> [options]')
+    (opts, args) = parser.parse_args()
+
+    # Make sure the load balancer name is specified.
+    if len(args) != 1:
+        parser.print_help()
+        return 1
+
+    try:
+        elb = boto.ec2.elb.connect_to_region('us-west-1')
+
+        policy_attributes = {
             'Protocol-SSLv2': False,
             'Protocol-SSLv3': True,
             'Protocol-TLSv1': True,
@@ -55,79 +59,13 @@ class Policy(object):
             'DES-CBC3-SHA': False
         }
 
-def create_policy(policy):
-    """Creates a new SSL policy for the specified load balancer.
+        policy = elb.create_lb_policy(args[0],
+            'SSLNegotiationPolicy-{0}-{1}' \
+                .format(load_balancer, time.strftime('%Y%m%d%H%M%S', time.gmtime())),
+            'SSLNegotiationPolicyType',
+            policy_attributes)
 
-    Enables the most recent and more secure TLS v1.2 and v1.1 protocols
-    and strong ciphersuite by default. Since AWS ELB does not seem to
-    support ECDHE ciphers at this time, forward secrecy is provided by
-    the DHE suite.
-
-    Args:
-        policy: The policy object.
-
-    Returns:
-        The status code that is set to 0 on success.
-    """
-    proc = subprocess.Popen(['aws',
-        'elb',
-        'create-load-balancer-policy',
-        '--load-balancer-name', policy.load_balancer,
-        '--policy-name', policy.name,
-        '--policy-type-name', policy.type,
-        '--policy-attributes', json.dumps([
-            {"AttributeName":k,"AttributeValue":v}
-            for k, v in policy.attributes.iteritems()])],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not create \'{0}\''.format(policy.name))
-
-    return 0
-
-
-def set_policy(policy):
-    """Sets the SSL policy.
-
-    Enables a policy for the default HTTPS listener (port 443) on the
-    specified load balancer.
-
-    Args:
-        policy: The policy object.
-
-    Returns:
-        The status code that is set to 0 on success.
-    """
-    proc = subprocess.Popen(['aws',
-        'elb',
-        'set-load-balancer-policies-of-listener',
-        '--load-balancer-name', policy.load_balancer,
-        '--load-balancer-port', '443',
-        '--policy-names', policy.name],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        raise Error('could not set \'{0}\''.format(policy.name))
-
-    return 0
-
-
-def main():
-    parser = optparse.OptionParser('Usage: %prog <load_balancer> [options]')
-    (opts, args) = parser.parse_args()
-
-    # Make sure the load balancer name is specified.
-    if len(args) != 1:
-        parser.print_help()
-        return 1
-
-    try:
-        policy = Policy(args[0])
-
-        create_policy(policy)
-        set_policy(policy)
+        elb.set_lb_policies_of_listener(args[0], 443, [policy])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1

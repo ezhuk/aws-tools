@@ -75,7 +75,7 @@ def main():
 
     options = vars(opts)
     options['name'] = args[0]
-    options['auto_scaling_group'] = options['name'] + '-ASG'
+    options['group_name'] = options['name'] + '-ASG'
 
     try:
         autoscale = boto.ec2.autoscale.connect_to_region('us-west-1')
@@ -87,51 +87,51 @@ def main():
             instance_type=options['type'])
         autoscale.create_launch_configuration(lc)
 
-        asg = AutoScalingGroup(name=options['auto_scaling_group'],
+        group = AutoScalingGroup(name=options['group_name'],
             launch_config=lc,
             availability_zones=[options['zone']],
             load_balancers=[options['load_balancer']],
             min_size=options['min'],
             max_size=options['max'])
-        autoscale.create_auto_scaling_group(asg)
+        autoscale.create_auto_scaling_group(group)
 
-        pu = ScalingPolicy(name=options['name'] + '-SP-UP',
-            as_name=name=options['auto_scaling_group'],
+        policy_up = ScalingPolicy(name=options['name'] + '-SP-UP',
+            as_name=options['group_name'],
             scaling_adjustment=1,
             adjustment_type='ChangeInCapacity')
-        autoscale.create_scaling_policy(pu)
+        autoscale.create_scaling_policy(policy_up)
 
         cloudwatch = boto.ec2.cloudwatch.connect_to_region('us-west-1')
 
-        ah = MetricAlarm(name=options['name'] + '-MA-CPU-HIGH',
-            alarm_actions=[pu],
+        alarm_high = MetricAlarm(name=options['name'] + '-MA-CPU-HIGH',
+            alarm_actions=[policy_up],
             metric='CPUUtilization',
             namespace='AWS/EC2',
             statistic='Average',
-            dimensions={'AutoScalingGroupName': options['auto_scaling_group']},
+            dimensions={'AutoScalingGroupName': options['group_name']},
             period=300,
             evaluation_periods=1,
             threshold=int(options['max_threshold']),
             comparison='>')
-        cloudwatch.create_alarm(ah)
+        cloudwatch.create_alarm(alarm_high)
 
-        pd = ScalingPolicy(name=options['name'] + '-SP-DOWN',
+        policy_down = ScalingPolicy(name=options['name'] + '-SP-DOWN',
             as_name=name=options['auto_scaling_group'],
             scaling_adjustment=-1,
             adjustment_type='ChangeInCapacity')
-        autoscale.create_scaling_policy(pd)
+        autoscale.create_scaling_policy(policy_down)
 
-        al = MetricAlarm(name=options['name'] + '-MA-CPU-LOW',
-            alarm_actions=[pd],
+        alarm_low = MetricAlarm(name=options['name'] + '-MA-CPU-LOW',
+            alarm_actions=[policy_down],
             metric='CPUUtilization',
             namespace='AWS/EC2',
             statistic='Average',
-            dimensions={'AutoScalingGroupName': options['auto_scaling_group']},
+            dimensions={'AutoScalingGroupName': options['group_name']},
             period=300,
             evaluation_periods=1,
             threshold=int(options['min_threshold']),
             comparison='<')
-        cloudwatch.create_alarm(al)
+        cloudwatch.create_alarm(alarm_low)
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
