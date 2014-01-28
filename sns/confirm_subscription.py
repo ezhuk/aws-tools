@@ -75,7 +75,7 @@ def main():
     (opts, args) = parser.parse_args()
 
     try:
-        server = Server(('', opts.port), RequestHandler)
+        server = Server(('', int(opts.port)), RequestHandler)
         server.serve_forever()
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
