@@ -13,6 +13,7 @@ Usage:
     ./haproxy_autoscale.py <options>
 """
 
+import boto.ec2
 import json
 import optparse
 import os
@@ -26,26 +27,10 @@ def get_running_instances(group):
     """Retrieves a list of currently running EC2 instances that belong
     to the specified security group.
     """
-    proc = subprocess.Popen(['aws',
-        'ec2',
-        'describe-instances',
-        '--filters','['
-            '{"Name":"instance.group-id","Values":["' + group + '"]},'
-            '{"Name":"instance-state-name","Values":["running"]}'
-        ']'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-    out, err = proc.communicate()
-    if 0 != proc.returncode:
-        return set()
-
-    instances = set()
-    doc = json.loads(out)
-    if 0 != len(doc['Reservations']):
-        for node in doc['Reservations'][0]['Instances']:
-            instances.add(node['PrivateDnsName'])
-
-    return instances
+    ec2 = boto.ec2.connect_to_region('us-west-1')
+    return [i.private_dns_name for i in ec2.get_only_instances( \
+        filters={'instance.group-id': [group], \
+                 'instance-state-name': 'running'})]
 
 
 def read_file(path):
@@ -82,7 +67,8 @@ def restart_haproxy(config):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog <options>')
-    parser.add_option('-c', '--config', dest='config', default='/etc/haproxy/haproxy.cfg',
+    parser.add_option('-c', '--config', dest='config',
+        default='/etc/haproxy/haproxy.cfg',
         help='HAProxy configuration file to use.')
     parser.add_option('-g', '--group', dest='group',
         help='The ID of a security group.')
@@ -107,7 +93,8 @@ def main():
         for pp, item in enumerate(new):
             config.append('    server app{0} {1} check\n'.format(pp, item))
 
-        os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S', time.gmtime()))
+        os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S', \
+            time.gmtime()))
         save_file(opts.config, config)
         restart_haproxy(opts.config)
 
