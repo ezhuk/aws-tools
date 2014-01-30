@@ -43,6 +43,16 @@ can be configured as a cron job as follows:
 */1 * * * * user /usr/sbin/haproxy_autoscale.py --group MySecurityGroup
 ```
 
+#### shutdown_auto_scaling.py
+
+Gracefully shuts down previously created Auto Scaling configuration. This script
+also deletes scaling policies, metric alarms and launch configuration associated
+with the specified Auto Scaling group.
+
+```bash
+./shutdown_auto_scaling.py --name TEST
+```
+
 ### 2. Billing
 
 #### configure_billing_alert.py
