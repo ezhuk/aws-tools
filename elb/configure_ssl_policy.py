@@ -39,7 +39,7 @@ def main():
         return 1
 
     try:
-        elb = boto.ec2.elb.connect_to_region('us-west-1')
+        elb = boto.connect_elb()
 
         policy_attributes = {
             'Protocol-SSLv2': False,

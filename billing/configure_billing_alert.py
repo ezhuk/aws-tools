@@ -20,6 +20,7 @@ import json
 import optparse
 import subprocess
 import sys
+
 from boto.ec2.cloudwatch import MetricAlarm
 
 
@@ -37,22 +38,28 @@ def main():
              'when exceeded, causes an alert to be triggered.')
     (opts, args) = parser.parse_args()
 
+    if len(args) != 0:
+        parser.print_help()
+        return 1
+
     if opts.email is None or \
        opts.threshold is None:
         parser.print_help()
         return 1
 
     try:
-        sns = boto.sns.connect_to_region('us-east-1')
+        sns = boto.connect_sns()
+
         topic = sns.create_topic('BillingNotifications') \
             ['CreateTopicResponse']['CreateTopicResult']['TopicArn']
 
-        sub = sns.subscribe(topic, 'email', opts.email) \
+        res = sns.subscribe(topic, 'email', opts.email) \
             ['SubscribeResponse']['SubscribeResult']['SubscriptionArn']
-        if sub == 'pending confirmation':
+        if res == 'pending confirmation':
             raw_input('Please confirm subscription. Press [ENTER] when done...')
 
-        cloudwatch = boto.ec2.cloudwatch.connect_to_region('us-east-1')
+        cloudwatch = boto.connect_cloudwatch()
+
         alarm = MetricAlarm(name='BillingAlarm-{0}'.format(opts.threshold),
             description='Estimated Monthly Charges',
             alarm_actions=[topic],
