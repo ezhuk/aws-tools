@@ -15,9 +15,7 @@ Usage:
 
 import boto.ec2.autoscale
 import boto.ec2.cloudwatch
-import json
 import optparse
-import subprocess
 import sys
 
 from boto.ec2.autoscale import LaunchConfiguration
