@@ -15,7 +15,8 @@ EC2 instance when the average CPU utilization exceeds 60% over any 5 minutes
 period and shutdown an instance when it goes below 40%.
 
 ```bash
-./configure_auto_scaling.py TEST \
+./configure_auto_scaling.py \
+    --name TEST \
     --image ami-a43909e1 \
     --type t1.micro \
     --key MyKeyPair \
