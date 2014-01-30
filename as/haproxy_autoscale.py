@@ -27,7 +27,7 @@ def get_running_instances(group):
     """Retrieves a list of currently running EC2 instances that belong
     to the specified security group.
     """
-    ec2 = boto.ec2.connect_to_region('us-west-1')
+    ec2 = boto.connect_ec2()
     return [i.private_dns_name for i in ec2.get_only_instances( \
         filters={'instance.group-id': [group], \
                  'instance-state-name': 'running'})]
@@ -73,6 +73,10 @@ def main():
     parser.add_option('-g', '--group', dest='group',
         help='The ID of a security group.')
     (opts, args) = parser.parse_args()
+
+    if len(args) != 0:
+        parser.print_help()
+        return 1
 
     if opts.group is None:
         parser.print_help()
