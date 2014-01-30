@@ -16,6 +16,7 @@ import boto.ec2.autoscale
 import boto.ec2.cloudwatch
 import optparse
 import sys
+import time
 
 
 class Error(Exception):
@@ -55,6 +56,7 @@ def main():
             group = autoscale.get_all_groups(names=[group_name])[0]
             if not group.instances:
                 break
+            time.sleep(1)
 
         autoscale.delete_policy(opts.name + '-SP-UP')
         autoscale.delete_policy(opts.name + '-SP-DOWN')
