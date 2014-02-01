@@ -33,9 +33,9 @@ threshold.
 #### haproxy_autoscale.py
 
 Keeps track of EC2 instances behind [HAProxy](http://haproxy.1wt.eu/) used as
-a load balancer and updates its configuration if they change. This allows to
-automatically direct traffic to currently running instances and remove the ones
-that are no longer used.
+a load balancer that are associated with one or more security groups and updates
+its configuration if they change. This allows to automatically direct traffic
+to currently running instances and remove the ones that are no longer used.
 
 This tool is supposed to be run periodically (e.g., every minute or so) and
 can be configured as a cron job as follows:
