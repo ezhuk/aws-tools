@@ -51,10 +51,10 @@ def main():
     parser.add_option('-M', '--max', dest='max', default='4',
         help='The maximum size of the auto scaling group. By default it is '
              'set to 4.')
-    parser.add_option('-z', '--zone', dest='zone',
+    parser.add_option('-z', '--zone', dest='zones', action='append',
         help='The availability zone for the auto scaling group. This option '
              'is required.')
-    parser.add_option('-l', '--load-balancer', dest='load_balancer',
+    parser.add_option('-l', '--load-balancer', dest='lbs', action='append',
         help='The name of an existing AWS load balancer to use, if any.')
     parser.add_option('--min-threshold', dest='min_threshold', default='40',
         help='The minimum CPU utilization threshold that triggers an alarm. '
@@ -68,10 +68,12 @@ def main():
         parser.print_help()
         return 1
 
+    print opts.zone
+
     if opts.name is None or \
        opts.key is None or \
        opts.group is None or \
-       opts.zone is None:
+       opts.zones is None:
         parser.print_help()
         return 1
 
@@ -88,8 +90,8 @@ def main():
         group_name = opts.name + '-ASG'
         group = AutoScalingGroup(name=group_name,
             launch_config=launch_config,
-            availability_zones=[opts.zone],
-            load_balancers=[opts.load_balancer],
+            availability_zones=opts.zones,
+            load_balancers=opts.lbs,
             min_size=opts.min,
             max_size=opts.max)
         autoscale.create_auto_scaling_group(group)

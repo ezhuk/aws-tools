@@ -23,13 +23,13 @@ import sys
 import time
 
 
-def get_running_instances(group):
+def get_running_instances(groups):
     """Retrieves a list of currently running EC2 instances that belong
-    to the specified security group.
+    to the specified security groups.
     """
     ec2 = boto.connect_ec2()
     return [i.private_dns_name for i in ec2.get_only_instances( \
-        filters={'instance.group-id': [group], \
+        filters={'instance.group-id': groups, \
                  'instance-state-name': 'running'})]
 
 
@@ -70,7 +70,7 @@ def main():
     parser.add_option('-c', '--config', dest='config',
         default='/etc/haproxy/haproxy.cfg',
         help='HAProxy configuration file to use.')
-    parser.add_option('-g', '--group', dest='group',
+    parser.add_option('-g', '--group', dest='groups', action='append',
         help='The ID of a security group.')
     (opts, args) = parser.parse_args()
 
@@ -78,7 +78,7 @@ def main():
         parser.print_help()
         return 1
 
-    if opts.group is None:
+    if opts.groups is None:
         parser.print_help()
         return 1
 
@@ -92,7 +92,7 @@ def main():
             else:
                 config.append(line)
 
-    new = get_running_instances(opts.group)
+    new = get_running_instances(opts.groups)
     if sorted(new) != sorted(old):
         for pp, item in enumerate(new):
             config.append('    server app{0} {1} check\n'.format(pp, item))
