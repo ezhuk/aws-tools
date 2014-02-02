@@ -62,6 +62,9 @@ def main():
     parser.add_option('--max-threshold', dest='max_threshold', default='60',
         help='The maximum CPU utilization threshold that triggers an alarm. '
              'This option is not required and is set to 40% by default.')
+    parser.add_option('-p', '--period', dest='period', default=300,
+        help='The evaluation period in seconds. This is optional and is set '
+             'to 300 seconds by default.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0:
@@ -110,7 +113,7 @@ def main():
             namespace='AWS/EC2',
             statistic='Average',
             dimensions={'AutoScalingGroupName': group_name},
-            period=300,
+            period=opts.period,
             evaluation_periods=1,
             threshold=int(opts.max_threshold),
             comparison='>')
@@ -128,7 +131,7 @@ def main():
             namespace='AWS/EC2',
             statistic='Average',
             dimensions={'AutoScalingGroupName': group_name},
-            period=300,
+            period=opts.period,
             evaluation_periods=1,
             threshold=int(opts.min_threshold),
             comparison='<')
