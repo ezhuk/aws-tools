@@ -20,7 +20,6 @@ Usage:
 import boto.ec2.elb
 import json
 import optparse
-import subprocess
 import sys
 import time
 

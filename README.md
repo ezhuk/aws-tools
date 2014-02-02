@@ -12,7 +12,7 @@ Configures AWS Auto Scaling to automatically manage system capacity based on
 an average CPU usage. It takes care of setting up launch configuration, auto
 scaling group, scaling policies and metric alarms to automatically add a new
 EC2 instance when the average CPU utilization exceeds the maximum threshold
-over any 5 minutes period and shutdown an instance when it goes below minimum
+over the specified period and shutdown an instance when it goes below minimum
 threshold.
 
 ```bash
