@@ -71,8 +71,6 @@ def main():
         parser.print_help()
         return 1
 
-    print opts.zone
-
     if opts.name is None or \
        opts.key is None or \
        opts.group is None or \
