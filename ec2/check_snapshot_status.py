@@ -5,7 +5,7 @@
 
 """Checks AWS EBS Snapshot status.
 
-This script displays the current status of an AWS EBS snapshot.
+This script displays the current status of one or more AWS EBS snapshots.
 
 Usage:
     ./check_snapshot_status.py [options]
@@ -23,15 +23,15 @@ class Error(Exception):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
-    parser.add_option('-s', '--snapshot', dest='snapshot', help='The snapshot'
-        'ID to check status for. This option is required.')
+    parser.add_option('-s', '--snapshot', dest='snapshots', action='append',
+        help='The snapshot ID to check status for. This option is required.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0:
         parser.print_help()
         return 1
 
-    if opts.snapshot is None:
+    if opts.snapshots is None:
         parser.print_help()
         return 1
 
@@ -39,17 +39,22 @@ def main():
         ec2 = boto.connect_ec2()
 
         while True:
-            snapshot = ec2.get_all_snapshots(snapshot_ids=[opts.snapshot])[0]
-            if not snapshot:
-                raise Error('could not find \'{0}\''.format(opts.snapshot))
+            snapshots = ec2.get_all_snapshots(snapshot_ids=opts.snapshots)
+            if not snapshots:
+                raise Error('could not find \'{0}\''.format(opts.snapshots))
 
-            print '\r{0}: [{1}{2}] {3}'.format(snapshot.id, \
-                '#' * 4 * (int(snapshot.progress.strip('%')) / 10), \
-                ' ' * 4 * ((100 - int(snapshot.progress.strip('%'))) / 10), \
-                snapshot.progress)
+            for snap in snapshots:
+                print '{0}: [{1}{2}] {3}'.format(snap.id, \
+                    '#' * 4 * (int(snap.progress.strip('%')) / 10), \
+                    ' ' * 4 * ((100 - int(snap.progress.strip('%'))) / 10), \
+                    snap.progress)
 
-            if snapshot.status != 'pending':
+            if all(snap.status != 'pending' for snap in snapshots):
                 break
+
+            size = len(snapshots)
+            if (1 < size):
+                sys.stdout.write('\x1b[1A' * size)
 
             time.sleep(3)
 

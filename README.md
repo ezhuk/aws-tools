@@ -71,8 +71,8 @@ monitoring must be enabled in billing preferences prior to configuring this aler
 
 #### check_snapshot_status.py
 
-Checks the current status of an existing AWS Elastic Block Store (EBS) snapshot
-and displays a progress bar with a percentage of completion.
+Checks the current status of one or more existing AWS Elastic Block Store (EBS)
+snapshots and displays a progress bar with a percentage of completion.
 
 ```bash
 ./check_snapshot_status.py -s snap-012345ab
