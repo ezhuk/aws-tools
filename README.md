@@ -67,7 +67,18 @@ monitoring must be enabled in billing preferences prior to configuring this aler
 ./configure_billing_alert.py --email name@example.com --threshold 1000
 ```
 
-### 3. Elastic Load Balancing
+### 3. Elastic Compute Cloud
+
+#### check_snapshot_status.py
+
+Checks the current status of an existing AWS Elastic Block Store (EBS) snapshot
+and displays a progress bar with a percentage of completion.
+
+```bash
+./check_snapshot_status.py -s snap-012345ab
+```
+
+### 4. Elastic Load Balancing
 
 #### configure_ssl_policy.py
 
@@ -86,7 +97,7 @@ concern.
 ./configure_ssl_policy.py MyLoadBalancer
 ```
 
-### 4. Simple Notification Service
+### 5. Simple Notification Service
 
 #### confirm_subscription.py
 
