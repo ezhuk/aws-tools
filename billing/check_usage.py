@@ -5,13 +5,15 @@
 
 """Checks AWS usage.
 
-TODO
+This script retrieves and displays an estimated total statement amount for
+the current billing period.
 
 Usage:
     ./check_usage.py [options]
 """
 
 import boto.s3
+import csv
 import optparse
 import re
 import sys
@@ -40,12 +42,23 @@ def main():
         if bucket is None:
             raise Error('could not find \'{0}\''.format(opts.bucket))
 
+        data = ''
         for key in bucket.list():
             p = re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
                 .format(time.strftime('%Y-%m', time.gmtime())), key.name)
             if p:
-                print key.name
+                data = key.get_contents_as_string()
+                break
+        if not data:
+            raise Error('could not find billing data for this month')
 
+        doc = csv.reader(data.rstrip('\n').split('\n'), delimiter=',')
+        for row in doc:
+            if row[3] == 'StatementTotal':
+                print 'Usage: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
+                    .format(row[24], row[23], \
+                            row[25], row[23], \
+                            row[28], row[23])
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
