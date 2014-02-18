@@ -38,11 +38,8 @@ def main():
              'when exceeded, causes an alert to be triggered.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0:
-        parser.print_help()
-        return 1
-
-    if opts.email is None or \
+    if len(args) != 0 or \
+       opts.email is None or \
        opts.threshold is None:
         parser.print_help()
         return 1

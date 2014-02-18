@@ -67,11 +67,8 @@ def main():
              'to 300 seconds by default.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0:
-        parser.print_help()
-        return 1
-
-    if opts.name is None or \
+    if len(args) != 0 or \
+       opts.name is None or \
        opts.key is None or \
        opts.group is None or \
        opts.zones is None:

@@ -27,11 +27,8 @@ def main():
         help='The snapshot ID to check status for. This option is required.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0:
-        parser.print_help()
-        return 1
-
-    if opts.snapshots is None:
+    if len(args) != 0 or \
+       opts.snapshots is None:
         parser.print_help()
         return 1
 

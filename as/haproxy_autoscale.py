@@ -74,11 +74,8 @@ def main():
         help='The ID of a security group.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0:
-        parser.print_help()
-        return 1
-
-    if opts.groups is None:
+    if len(args) != 0 or \
+       opts.groups is None:
         parser.print_help()
         return 1
 

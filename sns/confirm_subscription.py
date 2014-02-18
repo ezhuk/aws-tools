@@ -75,6 +75,10 @@ def main():
              'and is set to 8080 by default.')
     (opts, args) = parser.parse_args()
 
+    if len(args) != 0:
+        parser.print_help()
+        return 1
+
     try:
         server = Server(('', int(opts.port)), RequestHandler)
         server.serve_forever()
