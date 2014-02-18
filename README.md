@@ -56,6 +56,16 @@ with the specified Auto Scaling group.
 
 ### 2. Billing
 
+#### check_usage.py
+
+Retrieves AWS usage information for the current billing period and displays
+estimated total charges (including credits, if any). Note that for this to work,
+receiving monthly billing reports must be enabled in account preferences.
+
+```bash
+./check_usage.py --bucket MyBucket
+```
+
 #### configure_billing_alert.py
 
 Sets up a billing alert to keep track of monthly charges across AWS services so
