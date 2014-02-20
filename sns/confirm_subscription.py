@@ -48,13 +48,9 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             message_type = self.headers.getheader('x-amz-sns-message-type')
             if message_type == 'SubscriptionConfirmation':
-                response = urllib2.urlopen(doc['SubscribeURL'])
-                xml = ElementTree.XML(response.read())
-                arn = xml.find('ConfirmSubscriptionResult/SubscriptionArn')
-                print arn.text
+                _handle_confirmation(doc)
             elif message_type == 'Notification':
-                print 'Subject: \'{0}\'\nMessage: \'{1}\'\nTime: \'{2}\'' \
-                    .format(doc['Subject'], doc['Message'], doc['Timestamp'])
+                _handle_notification(doc)
             else:
                 raise Error('unsupported message type \'{0}\''.format(message_type))
         except (Error, urllib2.HTTPError), err:
@@ -66,6 +62,16 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Length', '0')
         self.end_headers()
+
+    def _handle_confirmation(self, data):
+        response = urllib2.urlopen(data['SubscribeURL'])
+        xml = ElementTree.XML(response.read())
+        arn = xml.find('ConfirmSubscriptionResult/SubscriptionArn')
+        print arn.text
+
+    def _handle_notification(self, data):
+        print 'Subject: \'{0}\'\nMessage: \'{1}\'\nTime: \'{2}\'' \
+            .format(data['Subject'], data['Message'], data['Timestamp'])
 
 
 def main():
