@@ -53,7 +53,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                 _handle_notification(doc)
             else:
                 raise Error('unsupported message type \'{0}\''.format(message_type))
-        except (Error, urllib2.HTTPError), err:
+        except (Error, Exception), err:
             self.send_response(404)
             self.send_header('Content-Length', '0')
             self.end_headers()

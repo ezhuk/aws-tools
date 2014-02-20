@@ -24,7 +24,7 @@ class Error(Exception):
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-s', '--snapshot', dest='snapshots', action='append',
-        help='The snapshot ID to check status for. This option is required.')
+        help='The snapshot ID(s) to check status for. This option is required.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0 or \

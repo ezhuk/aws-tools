@@ -60,7 +60,7 @@ def main():
 
         policy = elb.create_lb_policy(args[0],
             'SSLNegotiationPolicy-{0}-{1}' \
-                .format(load_balancer, time.strftime('%Y%m%d%H%M%S', time.gmtime())),
+                .format(args[0], time.strftime('%Y%m%d%H%M%S', time.gmtime())),
             'SSLNegotiationPolicyType',
             policy_attributes)
 
