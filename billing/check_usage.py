@@ -6,7 +6,7 @@
 """Checks AWS usage.
 
 This script retrieves and displays an estimated total statement amount for
-the current billing period.
+the specified billing period.
 
 Usage:
     ./check_usage.py [options]
@@ -26,8 +26,13 @@ class Error(Exception):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
-    parser.add_option('-b', '--bucket', dest="bucket",
-        help='The name of the S3 bucket that holds billing reports.')
+    parser.add_option('-b', '--bucket', dest='bucket',
+        help='The name of the S3 bucket that holds billing reports. This '
+             'option is required.')
+    parser.add_option('-p', '--period', dest='period',
+        help='The billing period to check the usage for (e.g., \'2014-02\' '
+             'without quotes). Defaults to the current billing period if '
+             'not specified.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0 or \
@@ -42,10 +47,13 @@ def main():
         if bucket is None:
             raise Error('could not find \'{0}\''.format(opts.bucket))
 
+        period = opts.period if opts.period is not None \
+            else time.strftime('%Y-%m', time.gmtime())
+
         data = ''
         for key in bucket.list():
             p = re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
-                .format(time.strftime('%Y-%m', time.gmtime())), key.name)
+                .format(period), key.name)
             if p:
                 data = key.get_contents_as_string()
                 break
