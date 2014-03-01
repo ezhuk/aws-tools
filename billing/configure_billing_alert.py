@@ -16,9 +16,7 @@ Usage:
 
 import boto.ec2.cloudwatch
 import boto.sns
-import json
 import optparse
-import subprocess
 import sys
 
 from boto.ec2.cloudwatch import MetricAlarm

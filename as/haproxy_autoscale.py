@@ -14,7 +14,6 @@ Usage:
 """
 
 import boto.ec2
-import json
 import optparse
 import os
 import re

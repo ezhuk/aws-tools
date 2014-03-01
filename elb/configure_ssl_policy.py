@@ -18,7 +18,6 @@ Usage:
 """
 
 import boto.ec2.elb
-import json
 import optparse
 import sys
 import time
