@@ -62,6 +62,9 @@ def main():
     parser.add_option('--max-threshold', dest='max_threshold', default='60',
         help='The maximum CPU utilization threshold that triggers an alarm. '
              'This option is not required and is set to 40% by default.')
+    parser.add_option('-a', '--adjustment', dest='adjustment', default='1',
+        help='The number of EC2 instances by which to scale up or down. '
+             'This is set to 1 by default.')
     parser.add_option('-p', '--period', dest='period', default=300,
         help='The evaluation period in seconds. This is optional and is set '
              'to 300 seconds by default.')
@@ -96,7 +99,7 @@ def main():
 
         policy_up = ScalingPolicy(name=opts.name + '-SP-UP',
             as_name=group_name,
-            scaling_adjustment=1,
+            scaling_adjustment=opts.adjustment,
             adjustment_type='ChangeInCapacity')
         autoscale.create_scaling_policy(policy_up)
 
@@ -116,7 +119,7 @@ def main():
 
         policy_down = ScalingPolicy(name=opts.name + '-SP-DOWN',
             as_name=group_name,
-            scaling_adjustment=-1,
+            scaling_adjustment=-opts.adjustment,
             adjustment_type='ChangeInCapacity')
         autoscale.create_scaling_policy(policy_down)
 
