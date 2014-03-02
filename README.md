@@ -9,11 +9,10 @@ This is a set of auxiliary tools for Amazon Web Services (AWS).
 #### configure_auto_scaling.py
 
 Configures AWS Auto Scaling to automatically manage system capacity based on
-an average CPU usage. It takes care of setting up launch configuration, auto
-scaling group, scaling policies and metric alarms to automatically add a new
-EC2 instance when the average CPU utilization exceeds the maximum threshold
-over the specified period and shutdown an instance when it goes below minimum
-threshold.
+an average CPU usage. It takes care of setting up new launch configuration
+and auto scaling group, scaling policies and metric alarms to automatically
+provision or shutdown one or more EC2 instances if an average CPU utilization
+exceeds the maximum threshold or goes below the minimum threshold respectively.
 
 ```bash
 ./configure_auto_scaling.py \
@@ -26,6 +25,7 @@ threshold.
     --max 8 \
     --min-threshold 30 \
     --max-threshold 70 \
+    --adjustment 2 \
     --zone us-west-1a \
     --load-balancer MyLoadBalancer
 ```
