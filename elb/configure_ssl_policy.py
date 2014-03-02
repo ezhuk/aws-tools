@@ -14,7 +14,7 @@ ciphers enabled and applies it to the default HTTPS listener (port 443)
 on the load balancer.
 
 Usage:
-    ./configure_ssl_policy.py <load_balancer>
+    ./configure_ssl_policy.py [options]
 """
 
 import boto.ec2.elb
@@ -28,11 +28,14 @@ class Error(Exception):
 
 
 def main():
-    parser = optparse.OptionParser('Usage: %prog <load_balancer> [options]')
+    parser = optparse.OptionParser('Usage: %prog [options]')
+    parser.add_option('-l', '--load-balancer', dest='lbs', action='append',
+        help='A list of AWS load balancers to configure the policy on. '
+             'This option is required.')
     (opts, args) = parser.parse_args()
 
-    # Make sure the load balancer name is specified.
-    if len(args) != 1:
+    if len(args) != 0 or \
+       opts.lbs is None:
         parser.print_help()
         return 1
 
@@ -57,13 +60,14 @@ def main():
             'DES-CBC3-SHA': False
         }
 
-        policy = elb.create_lb_policy(args[0],
-            'SSLNegotiationPolicy-{0}-{1}' \
-                .format(args[0], time.strftime('%Y%m%d%H%M%S', time.gmtime())),
-            'SSLNegotiationPolicyType',
-            policy_attributes)
+        for lb in opts.lbs:
+            policy = elb.create_lb_policy(lb,
+                'SSLNegotiationPolicy-{0}-{1}' \
+                    .format(lb, time.strftime('%Y%m%d%H%M%S', time.gmtime())),
+                'SSLNegotiationPolicyType',
+                policy_attributes)
 
-        elb.set_lb_policies_of_listener(args[0], 443, [policy])
+            elb.set_lb_policies_of_listener(lb, 443, [policy])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1

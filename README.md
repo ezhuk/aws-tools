@@ -74,7 +74,9 @@ estimated monthly charges exceed the specified threshold. Note that metric data
 monitoring must be enabled in billing preferences prior to configuring this alert.
 
 ```bash
-./configure_billing_alert.py --email name@example.com --threshold 1000
+./configure_billing_alert.py \
+    --email name@example.com \
+    --threshold 1000
 ```
 
 ### 3. Elastic Compute Cloud
@@ -85,7 +87,7 @@ Checks the current status of one or more existing AWS Elastic Block Store (EBS)
 snapshots and displays progress bar(s) with percentage of completion.
 
 ```bash
-./check_snapshot_status.py -s snap-012345ab
+./check_snapshot_status.py --snapshot snap-012345ab
 ```
 
 ### 4. Elastic Load Balancing
@@ -104,7 +106,7 @@ secrecy is provided by the DHE suite which can be disabled if performance is of
 concern.
 
 ```bash
-./configure_ssl_policy.py MyLoadBalancer
+./configure_ssl_policy.py --load-balancer MyLoadBalancer
 ```
 
 ### 5. Simple Notification Service
