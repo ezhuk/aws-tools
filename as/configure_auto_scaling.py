@@ -58,10 +58,10 @@ def main():
         help='The name of an existing AWS load balancer to use, if any.')
     parser.add_option('--min-threshold', dest='min_threshold', default='40',
         help='The minimum CPU utilization threshold that triggers an alarm. '
-             'This option is not required and is set to 60% by default.')
+             'This option is not required and is set to 40% by default.')
     parser.add_option('--max-threshold', dest='max_threshold', default='60',
         help='The maximum CPU utilization threshold that triggers an alarm. '
-             'This option is not required and is set to 40% by default.')
+             'This option is not required and is set to 60% by default.')
     parser.add_option('-a', '--adjustment', dest='adjustment', default='1',
         help='The number of EC2 instances by which to scale up or down. '
              'This is set to 1 by default.')
