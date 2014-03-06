@@ -18,6 +18,7 @@ import json
 import optparse
 import SimpleHTTPServer
 import SocketServer
+import ssl
 import sys
 import urllib2
 
@@ -52,7 +53,8 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             elif message_type == 'Notification':
                 _handle_notification(doc)
             else:
-                raise Error('unsupported message type \'{0}\''.format(message_type))
+                raise Error('unsupported message type \'{0}\''
+                    .format(message_type))
         except (Error, Exception), err:
             self.send_response(404)
             self.send_header('Content-Length', '0')
@@ -60,6 +62,11 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             return
 
         self.send_response(200)
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+
+    def do_GET(self):
+        self.send_response(403)
         self.send_header('Content-Length', '0')
         self.end_headers()
 
@@ -77,16 +84,29 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-p', '--port', dest='port', default=8080,
-        help='The port number to listen on. This option is not required '
-             'and is set to 8080 by default.')
+        help='The port number to listen on. This option is not required and '
+             'is set to 8080 by default.')
+    parser.add_option('-s', '--ssl', dest='ssl', action='store_true',
+        help='Enable SSL/TLS. This option is not required.')
+    parser.add_option('-k', '--key', dest='key',
+        help='A private key file to be used when SSL is enabled.')
+    parser.add_option('-c', '--cert', dest='cert',
+        help='A certificate file to be used when SSL is enabled.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0:
+    if len(args) != 0 or \
+       (opts.ssl and (opts.cert is None or opts.key is None)):
         parser.print_help()
         return 1
 
     try:
         server = Server(('', int(opts.port)), RequestHandler)
+        if opts.ssl:
+            server.socket = ssl.wrap_socket(server.socket,
+                server_side=True,
+                ssl_version=ssl.PROTOCOL_TLSv1,
+                certfile=opts.cert,
+                keyfile=opts.key)
         server.serve_forever()
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
