@@ -5,9 +5,9 @@
 
 """Confirms subscription to a topic.
 
-This is used to confirm a subscription of an HTTP endpoint to a topic
-created on AWS Simple Notification Service (SNS). It is supposed to
-run on the endpoint that is being subscribed.
+This is used to confirm a subscription of an HTTP(S) endpoint to a topic
+created on AWS Simple Notification Service (SNS). It is supposed to run
+on the endpoint that is being subscribed.
 
 Usage:
     ./confirm_subscription.py [options]

@@ -113,7 +113,7 @@ concern.
 
 #### confirm_subscription.py
 
-Confirms an HTTP endpoint subscription to an Amazon Simple Notification Service
+Confirms an HTTP(S) endpoint subscription to an Amazon Simple Notification Service
 (SNS) topic by visiting the URL specified in the confirmation request from SNS.
 It is supposed to run on the endpoint that is going to be subscribed.
 
