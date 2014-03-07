@@ -12,6 +12,7 @@ Usage:
     ./check_usage.py [options]
 """
 
+import boto.ec2
 import boto.s3
 import csv
 import optparse
@@ -41,6 +42,27 @@ def main():
         return 1
 
     try:
+        ec2 = boto.connect_ec2()
+
+        print '{0} Elastic IP Addresses\n' \
+            '{1} Instances\n' \
+            '{2} Reserved Instances\n' \
+            '{3} Spot Instance Requests\n' \
+            '{4} Volumes\n' \
+            '{5} Snapshots\n' \
+            '{6} Images\n' \
+            '{7} Security Groups\n' \
+            '{8} Key Pairs' \
+            .format(len(ec2.get_all_addresses()), \
+                    len(ec2.get_all_reservations()), \
+                    len(ec2.get_all_reserved_instances()), \
+                    len(ec2.get_all_spot_instance_requests()), \
+                    len(ec2.get_all_volumes()), \
+                    len(ec2.get_all_snapshots(owner=['self'])), \
+                    len(ec2.get_all_images(owners=['self'])), \
+                    len(ec2.get_all_security_groups()), \
+                    len(ec2.get_all_key_pairs()))
+
         s3 = boto.connect_s3()
 
         bucket = s3.lookup(opts.bucket)
@@ -63,7 +85,7 @@ def main():
         doc = csv.reader(data.rstrip('\n').split('\n'), delimiter=',')
         for row in doc:
             if row[3] == 'StatementTotal':
-                print 'Usage: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
+                print 'Cost: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
                     .format(row[24], row[23], \
                             row[25], row[23], \
                             row[28], row[23])
