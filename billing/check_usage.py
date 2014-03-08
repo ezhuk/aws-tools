@@ -13,7 +13,10 @@ Usage:
 """
 
 import boto.ec2
+import boto.route53
 import boto.s3
+import boto.sns
+import boto.sqs
 import csv
 import optparse
 import re
@@ -23,6 +26,67 @@ import time
 
 class Error(Exception):
     pass
+
+
+def get_ec2_usage():
+    ec2 = boto.connect_ec2()
+
+    print '{0} Elastic IP Addresses\n' \
+        '{1} Instances\n' \
+        '{2} Reserved Instances\n' \
+        '{3} Spot Instance Requests\n' \
+        '{4} Volumes\n' \
+        '{5} Snapshots\n' \
+        '{6} Images\n' \
+        '{7} Security Groups\n' \
+        '{8} Key Pairs' \
+        .format(len(ec2.get_all_addresses()), \
+            len(ec2.get_all_reservations()), \
+            len(ec2.get_all_reserved_instances()), \
+            len(ec2.get_all_spot_instance_requests()), \
+            len(ec2.get_all_volumes()), \
+            len(ec2.get_all_snapshots(owner=['self'])), \
+            len(ec2.get_all_images(owners=['self'])), \
+            len(ec2.get_all_security_groups()), \
+            len(ec2.get_all_key_pairs()))
+
+
+def get_as_usage():
+    autoscale = boto.connect_autoscale()
+
+    print '{0} Auto Scaling Groups\n' \
+        '{1} Launch Configurations\n' \
+        '{2} Auto Scaling Policies' \
+        .format(len(autoscale.get_all_groups()), \
+            len(autoscale.get_all_launch_configurations()), \
+            len(autoscale.get_all_policies()))
+
+
+def get_sns_usage():
+    sns = boto.connect_sns()
+
+    print '{0} Topics\n' \
+        '{1} Subscriptions' \
+        .format(len(sns.get_all_topics()), \
+            len(sns.get_all_subscriptions()))
+
+
+def get_sqs_usage():
+    sqs = boto.connect_sqs()
+
+    print '{0} Queues'.format(len(sqs.get_all_queues()))
+
+
+def get_cw_usage():
+    cw = boto.connect_cloudwatch()
+
+    print '{0} Alarms'.format(len(cw.describe_alarms()))
+
+
+def get_r53_usage():
+    r53 = boto.connect_route53()
+
+    print '{0} Hosted Zones'.format(len(r53.get_all_hosted_zones()))
 
 
 def main():
@@ -42,26 +106,12 @@ def main():
         return 1
 
     try:
-        ec2 = boto.connect_ec2()
-
-        print '{0} Elastic IP Addresses\n' \
-            '{1} Instances\n' \
-            '{2} Reserved Instances\n' \
-            '{3} Spot Instance Requests\n' \
-            '{4} Volumes\n' \
-            '{5} Snapshots\n' \
-            '{6} Images\n' \
-            '{7} Security Groups\n' \
-            '{8} Key Pairs' \
-            .format(len(ec2.get_all_addresses()), \
-                    len(ec2.get_all_reservations()), \
-                    len(ec2.get_all_reserved_instances()), \
-                    len(ec2.get_all_spot_instance_requests()), \
-                    len(ec2.get_all_volumes()), \
-                    len(ec2.get_all_snapshots(owner=['self'])), \
-                    len(ec2.get_all_images(owners=['self'])), \
-                    len(ec2.get_all_security_groups()), \
-                    len(ec2.get_all_key_pairs()))
+        get_ec2_usage()
+        get_as_usage()
+        get_sns_usage()
+        get_sqs_usage()
+        get_cw_usage()
+        get_r53_usage()
 
         s3 = boto.connect_s3()
 
