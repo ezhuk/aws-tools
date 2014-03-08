@@ -30,7 +30,6 @@ class Error(Exception):
 
 def get_ec2_usage():
     ec2 = boto.connect_ec2()
-
     print '{0} Elastic IP Addresses\n' \
         '{1} Instances\n' \
         '{2} Reserved Instances\n' \
@@ -53,7 +52,6 @@ def get_ec2_usage():
 
 def get_as_usage():
     autoscale = boto.connect_autoscale()
-
     print '{0} Auto Scaling Groups\n' \
         '{1} Launch Configurations\n' \
         '{2} Auto Scaling Policies' \
@@ -64,7 +62,6 @@ def get_as_usage():
 
 def get_sns_usage():
     sns = boto.connect_sns()
-
     print '{0} Topics\n' \
         '{1} Subscriptions' \
         .format(len(sns.get_all_topics()), \
@@ -73,20 +70,23 @@ def get_sns_usage():
 
 def get_sqs_usage():
     sqs = boto.connect_sqs()
-
     print '{0} Queues'.format(len(sqs.get_all_queues()))
 
 
 def get_cw_usage():
     cw = boto.connect_cloudwatch()
-
     print '{0} Alarms'.format(len(cw.describe_alarms()))
 
 
 def get_r53_usage():
     r53 = boto.connect_route53()
-
     print '{0} Hosted Zones'.format(len(r53.get_all_hosted_zones()))
+
+
+def get_elb_usage():
+    elb = boto.connect_elb()
+    print '{0} Elastic Load Balancers' \
+        .format(len(elb.get_all_load_balancers()))
 
 
 def main():
@@ -112,6 +112,7 @@ def main():
         get_sqs_usage()
         get_cw_usage()
         get_r53_usage()
+        get_elb_usage()
 
         s3 = boto.connect_s3()
 
