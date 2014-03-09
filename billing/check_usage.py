@@ -95,6 +95,34 @@ def get_s3_usage():
         .format(len(s3.get_all_buckets()))
 
 
+def get_aws_cost(bucket_name, time_period):
+    s3 = boto.connect_s3()
+    bucket = s3.lookup(bucket_name)
+    if bucket is None:
+        raise Error('could not find \'{0}\''.format(bucket_name))
+
+    period = time_period if time_period is not None \
+        else time.strftime('%Y-%m', time.gmtime())
+
+    data = ''
+    for key in bucket.list():
+        p = re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
+            .format(period), key.name)
+        if p:
+            data = key.get_contents_as_string()
+            break
+    if not data:
+        raise Error('could not find billing data for this month')
+
+    doc = csv.reader(data.rstrip('\n').split('\n'), delimiter=',')
+    for row in doc:
+        if row[3] == 'StatementTotal':
+            print 'Cost: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
+                .format(row[24], row[23], \
+                        row[25], row[23], \
+                        row[28], row[23])
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-b', '--bucket', dest='bucket',
@@ -121,32 +149,7 @@ def main():
         get_elb_usage()
         get_s3_usage()
 
-        s3 = boto.connect_s3()
-
-        bucket = s3.lookup(opts.bucket)
-        if bucket is None:
-            raise Error('could not find \'{0}\''.format(opts.bucket))
-
-        period = opts.period if opts.period is not None \
-            else time.strftime('%Y-%m', time.gmtime())
-
-        data = ''
-        for key in bucket.list():
-            p = re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
-                .format(period), key.name)
-            if p:
-                data = key.get_contents_as_string()
-                break
-        if not data:
-            raise Error('could not find billing data for this month')
-
-        doc = csv.reader(data.rstrip('\n').split('\n'), delimiter=',')
-        for row in doc:
-            if row[3] == 'StatementTotal':
-                print 'Cost: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
-                    .format(row[24], row[23], \
-                            row[25], row[23], \
-                            row[28], row[23])
+        get_aws_cost(opts.bucket, opts.period)
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
