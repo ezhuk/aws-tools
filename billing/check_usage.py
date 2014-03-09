@@ -89,6 +89,12 @@ def get_elb_usage():
         .format(len(elb.get_all_load_balancers()))
 
 
+def get_s3_usage():
+    s3 = boto.connect_s3()
+    print '{0} S3 Buckets' \
+        .format(len(s3.get_all_buckets()))
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-b', '--bucket', dest='bucket',
@@ -113,6 +119,7 @@ def main():
         get_cw_usage()
         get_r53_usage()
         get_elb_usage()
+        get_s3_usage()
 
         s3 = boto.connect_s3()
 
