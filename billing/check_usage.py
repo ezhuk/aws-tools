@@ -18,6 +18,7 @@ import boto.s3
 import boto.sns
 import boto.sqs
 import csv
+import itertools
 import optparse
 import re
 import sys
@@ -91,8 +92,12 @@ def get_elb_usage():
 
 def get_s3_usage():
     s3 = boto.connect_s3()
-    print '{0} S3 Buckets' \
-        .format(len(s3.get_all_buckets()))
+    buckets = s3.get_all_buckets()
+    res = sum([k.size for k in itertools.chain.from_iterable( \
+        [b.get_all_keys() for b in buckets])])
+    print '{0:.3f} GB in {1} S3 Buckets' \
+        .format(res / float(1024 * 1024 * 1024), \
+                len(buckets))
 
 
 def get_aws_cost(bucket_name, time_period):
