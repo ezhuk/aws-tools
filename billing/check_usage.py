@@ -31,20 +31,24 @@ class Error(Exception):
 
 def get_ec2_usage():
     ec2 = boto.connect_ec2()
-    print '{0} Elastic IP Addresses\n' \
-        '{1} Instances\n' \
-        '{2} Reserved Instances\n' \
-        '{3} Spot Instance Requests\n' \
-        '{4} Volumes\n' \
-        '{5} Snapshots\n' \
-        '{6} Images\n' \
-        '{7} Security Groups\n' \
-        '{8} Key Pairs' \
-        .format(len(ec2.get_all_addresses()), \
+    addrs = ec2.get_all_addresses()
+    un = sum(a.instance_id is None for a in addrs)
+    volumes = ec2.get_all_volumes()
+    vs = sum(v.size for v in volumes)
+    print '{0} Elastic IP Addresse(s){1}\n' \
+        '{2} Instance(s)\n' \
+        '{3} Reserved Instance(s)\n' \
+        '{4} Spot Instance Request(s)\n' \
+        '{5} Volume(s){6}\n' \
+        '{7} Snapshot(s)\n' \
+        '{8} Image(s)\n' \
+        '{9} Security Group(s)\n' \
+        '{10} Key Pair(s)' \
+        .format(len(addrs), ' ({0} unassigned)'.format(un) if 0 != un else '', \
             len(ec2.get_all_reservations()), \
             len(ec2.get_all_reserved_instances()), \
             len(ec2.get_all_spot_instance_requests()), \
-            len(ec2.get_all_volumes()), \
+            len(volumes), ' ({0} GB)'.format(vs) if 0 != vs else '', \
             len(ec2.get_all_snapshots(owner=['self'])), \
             len(ec2.get_all_images(owners=['self'])), \
             len(ec2.get_all_security_groups()), \
