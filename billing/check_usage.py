@@ -61,9 +61,9 @@ def get_ec2_usage():
 
 def get_as_usage():
     autoscale = boto.connect_autoscale()
-    print '{0} Auto Scaling Groups\n' \
-        '{1} Launch Configurations\n' \
-        '{2} Auto Scaling Policies' \
+    print '{0} Auto Scaling Group(s)\n' \
+        '{1} Launch Configuration(s)\n' \
+        '{2} Auto Scaling Policie(s)' \
         .format(len(autoscale.get_all_groups()), \
             len(autoscale.get_all_launch_configurations()), \
             len(autoscale.get_all_policies()))
@@ -71,30 +71,30 @@ def get_as_usage():
 
 def get_sns_usage():
     sns = boto.connect_sns()
-    print '{0} Topics\n' \
-        '{1} Subscriptions' \
+    print '{0} Topic(s)\n' \
+        '{1} Subscription(s)' \
         .format(len(sns.get_all_topics()), \
             len(sns.get_all_subscriptions()))
 
 
 def get_sqs_usage():
     sqs = boto.connect_sqs()
-    print '{0} Queues'.format(len(sqs.get_all_queues()))
+    print '{0} Queue(s)'.format(len(sqs.get_all_queues()))
 
 
 def get_cw_usage():
     cw = boto.connect_cloudwatch()
-    print '{0} Alarms'.format(len(cw.describe_alarms()))
+    print '{0} Alarm(s)'.format(len(cw.describe_alarms()))
 
 
 def get_r53_usage():
     r53 = boto.connect_route53()
-    print '{0} Hosted Zones'.format(len(r53.get_all_hosted_zones()))
+    print '{0} Hosted Zone(s)'.format(len(r53.get_all_hosted_zones()))
 
 
 def get_elb_usage():
     elb = boto.connect_elb()
-    print '{0} Elastic Load Balancers' \
+    print '{0} Elastic Load Balancer(s)' \
         .format(len(elb.get_all_load_balancers()))
 
 
@@ -103,7 +103,7 @@ def get_s3_usage():
     buckets = s3.get_all_buckets()
     res = sum([k.size for k in itertools.chain.from_iterable( \
         [b.get_all_keys() for b in buckets])])
-    print '{0} S3 Buckets [{1:.3f} GB]' \
+    print '{0} S3 Bucket(s) [{1:.3f} GB]' \
         .format(len(buckets), res / float(1024 * 1024 * 1024))
 
 
