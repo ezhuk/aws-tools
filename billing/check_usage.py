@@ -35,20 +35,24 @@ def get_ec2_usage():
     un = sum(a.instance_id is None for a in addrs)
     volumes = ec2.get_all_volumes()
     vs = sum(v.size for v in volumes)
+    insts = list(itertools.chain.from_iterable([x.instances \
+        for x in ec2.get_all_reservations()]))
+    ic = len(insts)
+    ir = sum(i.state_code == 16 for i in insts)
     print '{0} Elastic IP Addresse(s){1}\n' \
-        '{2} Instance(s)\n' \
-        '{3} Reserved Instance(s)\n' \
-        '{4} Spot Instance Request(s)\n' \
-        '{5} Volume(s){6}\n' \
-        '{7} Snapshot(s)\n' \
-        '{8} Image(s)\n' \
-        '{9} Security Group(s)\n' \
-        '{10} Key Pair(s)' \
-        .format(len(addrs), ' ({0} unassigned)'.format(un) if 0 != un else '', \
-            len(ec2.get_all_reservations()), \
+        '{2} Instance(s){3}\n' \
+        '{4} Reserved Instance(s)\n' \
+        '{5} Spot Instance Request(s)\n' \
+        '{6} Volume(s){7}\n' \
+        '{8} Snapshot(s)\n' \
+        '{9} Image(s)\n' \
+        '{10} Security Group(s)\n' \
+        '{11} Key Pair(s)' \
+        .format(len(addrs), ' [{0} unassigned]'.format(un) if 0 != un else '', \
+            ic, ' [{0} running]'.format(ir) if ic != 0 else '', \
             len(ec2.get_all_reserved_instances()), \
             len(ec2.get_all_spot_instance_requests()), \
-            len(volumes), ' ({0} GB)'.format(vs) if 0 != vs else '', \
+            len(volumes), ' [{0} GB]'.format(vs) if 0 != vs else '', \
             len(ec2.get_all_snapshots(owner=['self'])), \
             len(ec2.get_all_images(owners=['self'])), \
             len(ec2.get_all_security_groups()), \
@@ -99,9 +103,8 @@ def get_s3_usage():
     buckets = s3.get_all_buckets()
     res = sum([k.size for k in itertools.chain.from_iterable( \
         [b.get_all_keys() for b in buckets])])
-    print '{0:.3f} GB in {1} S3 Buckets' \
-        .format(res / float(1024 * 1024 * 1024), \
-                len(buckets))
+    print '{0} S3 Buckets [{1:.3f} GB]' \
+        .format(len(buckets), res / float(1024 * 1024 * 1024))
 
 
 def get_aws_cost(bucket_name, time_period):
