@@ -89,7 +89,10 @@ def get_cw_usage():
 
 def get_r53_usage():
     r53 = boto.connect_route53()
-    print '{0} Hosted Zone(s)'.format(len(r53.get_all_hosted_zones()))
+    zones = r53.get_zones()
+    records = sum(len(z.get_records()) for z in zones)
+    print '{0} Hosted Zone(s) [{1} records]' \
+        .format(len(zones), records)
 
 
 def get_elb_usage():
