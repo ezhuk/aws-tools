@@ -61,10 +61,13 @@ def get_ec2_usage():
 
 def get_as_usage():
     autoscale = boto.connect_autoscale()
-    print '{0} Auto Scaling Group(s)\n' \
-        '{1} Launch Configuration(s)\n' \
-        '{2} Auto Scaling Policie(s)' \
-        .format(len(autoscale.get_all_groups()), \
+    gs = len(autoscale.get_all_groups())
+    print '{0} Auto Scaling Group(s){1}\n' \
+        '{2} Launch Configuration(s)\n' \
+        '{3} Auto Scaling Policie(s)' \
+        .format(gs, ' [{0} instances]' \
+                .format(autoscale.get_all_autoscaling_instances()) \
+                if 0 != gs else '', \
             len(autoscale.get_all_launch_configurations()), \
             len(autoscale.get_all_policies()))
 
