@@ -142,7 +142,7 @@ def get_aws_cost(bucket_name, time_period):
             value = float(row[28])
             if value >= 0:
                 if not code in cost:
-                    cost[code] = [row[13], value, row[23]]
+                    cost[code] = [row[13].split(' ', 1)[1], value, row[23]]
                 else:
                     cost[code][1] += value
         if row[3] == 'StatementTotal':
@@ -152,9 +152,9 @@ def get_aws_cost(bucket_name, time_period):
 
     print '---'
     for k, v in cost.items():
-        print '{0}: {1:.2f} {2}'.format(v[0], v[1], v[2])
+        print '{0:<30} {1:>8.2f} {2}'.format(v[0], v[1], v[2])
     for v in total:
-        print '{0}: {1:.2f} {2}'.format(v[0], v[1], v[2])
+        print '{0:>29}: {1:>8.2f} {2}'.format(v[0], v[1], v[2])
 
 
 def main():
