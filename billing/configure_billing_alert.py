@@ -31,6 +31,8 @@ def main():
     parser.add_option('-e', '--email', dest='email',
         help='The email address to send notifications to whenever an '
              'alert is triggered.')
+    parser.add_option('-n', '--name', dest='name',
+        help='The name of the alarm (e.g., BillingAlarm-1000).')
     parser.add_option('-t', '--threshold', dest='threshold',
         help='The dollar amount of estimated monthly charges which, '
              'when exceeded, causes an alert to be triggered.')
@@ -55,7 +57,8 @@ def main():
 
         cloudwatch = boto.connect_cloudwatch()
 
-        alarm = MetricAlarm(name='BillingAlarm-{0}'.format(opts.threshold),
+        alarm = MetricAlarm(name=opts.name if opts.name is not None \
+                else 'BillingAlarm-{0}'.format(opts.threshold),
             description='Estimated Monthly Charges',
             alarm_actions=[topic],
             metric='EstimatedCharges',
