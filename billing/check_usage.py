@@ -132,13 +132,29 @@ def get_aws_cost(bucket_name, time_period):
     if not data:
         raise Error('could not find billing data for this month')
 
+    cost = dict()
+    total = list()
+
     doc = csv.reader(data.rstrip('\n').split('\n'), delimiter=',')
     for row in doc:
+        code = row[12]
+        if code and code != 'ProductCode':
+            value = float(row[28])
+            if value >= 0:
+                if not code in cost:
+                    cost[code] = [row[13], value, row[23]]
+                else:
+                    cost[code][1] += value
         if row[3] == 'StatementTotal':
-            print 'Cost: {0} {1}\nCredit: {2} {3}\nTotal: {4} {5}' \
-                .format(row[24], row[23], \
-                        row[25], row[23], \
-                        row[28], row[23])
+            total.extend([['Cost', float(row[24]), row[23]], \
+                ['Credit', float(row[25]), row[23]], \
+                ['Total', float(row[28]), row[23]]])
+
+    print '---'
+    for k, v in cost.items():
+        print '{0}: {1:.2f} {2}'.format(v[0], v[1], v[2])
+    for v in total:
+        print '{0}: {1:.2f} {2}'.format(v[0], v[1], v[2])
 
 
 def main():
