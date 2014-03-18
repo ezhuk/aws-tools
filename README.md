@@ -76,6 +76,7 @@ monitoring must be enabled in billing preferences prior to configuring this aler
 ```bash
 ./configure_billing_alert.py \
     --email name@example.com \
+    --name BillingAlert-1000 \
     --threshold 1000
 ```
 
