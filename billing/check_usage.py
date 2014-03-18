@@ -13,6 +13,7 @@ Usage:
 """
 
 import boto.ec2
+import boto.rds
 import boto.route53
 import boto.s3
 import boto.sns
@@ -104,6 +105,12 @@ def get_elb_usage():
         .format(len(elb.get_all_load_balancers()))
 
 
+def get_rds_usage():
+    rds = boto.connect_rds()
+    print '{0} RDS Instance(s)' \
+        .format(len(rds.get_all_dbinstances()))
+
+
 def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
@@ -181,6 +188,7 @@ def main():
         get_cw_usage()
         get_r53_usage()
         get_elb_usage()
+        get_rds_usage()
         get_s3_usage()
 
         get_aws_cost(opts.bucket, opts.period)
