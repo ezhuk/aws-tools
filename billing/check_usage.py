@@ -12,6 +12,7 @@ Usage:
     ./check_usage.py [options]
 """
 
+import boto.cloudfront
 import boto.ec2
 import boto.rds
 import boto.route53
@@ -60,6 +61,15 @@ def get_ec2_usage():
             len(ec2.get_all_key_pairs()))
 
 
+def get_cf_usage():
+    cf = boto.connect_cloudfront()
+    ds = cf.get_all_distributions()
+    os = len(list(itertools.chain.from_iterable( \
+        [x.get_distribution().get_objects() for x in ds])))
+    print '{0} CloudFront Distribution(s){1}' \
+        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else "")
+
+
 def get_as_usage():
     autoscale = boto.connect_autoscale()
     gs = len(autoscale.get_all_groups())
@@ -95,7 +105,7 @@ def get_r53_usage():
     r53 = boto.connect_route53()
     zones = r53.get_zones()
     records = sum(len(z.get_records()) for z in zones)
-    print '{0} Hosted Zone(s) [{1} records]' \
+    print '{0} Hosted Zone(s) [{1} record(s)]' \
         .format(len(zones), records)
 
 
@@ -190,6 +200,7 @@ def main():
         get_elb_usage()
         get_rds_usage()
         get_s3_usage()
+        get_cf_usage()
 
         get_aws_cost(opts.bucket, opts.period)
     except (Error, Exception), err:
