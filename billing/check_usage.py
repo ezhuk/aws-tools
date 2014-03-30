@@ -49,7 +49,9 @@ def get_ec2_usage():
         '{8} Snapshot(s)\n' \
         '{9} Image(s)\n' \
         '{10} Security Group(s)\n' \
-        '{11} Key Pair(s)' \
+        '{11} Key Pair(s)\n' \
+        '{12} Network Interface(s)\n' \
+        '{13} Tag(s)' \
         .format(len(addrs), ' [{0} unassigned]'.format(un) if 0 != un else '', \
             ic, ' [{0} running]'.format(ir) if ic != 0 else '', \
             len(ec2.get_all_reserved_instances()), \
@@ -58,7 +60,9 @@ def get_ec2_usage():
             len(ec2.get_all_snapshots(owner=['self'])), \
             len(ec2.get_all_images(owners=['self'])), \
             len(ec2.get_all_security_groups()), \
-            len(ec2.get_all_key_pairs()))
+            len(ec2.get_all_key_pairs()), \
+            len(ec2.get_all_network_interfaces()), \
+            len(ec2.get_all_tags()))
 
 
 def get_cf_usage():
@@ -67,7 +71,7 @@ def get_cf_usage():
     os = len(list(itertools.chain.from_iterable( \
         [x.get_distribution().get_objects() for x in ds])))
     print '{0} CloudFront Distribution(s){1}' \
-        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else "")
+        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
 
 
 def get_as_usage():
