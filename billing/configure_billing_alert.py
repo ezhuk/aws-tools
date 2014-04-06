@@ -36,6 +36,9 @@ def main():
     parser.add_option('-t', '--threshold', dest='threshold',
         help='The dollar amount of estimated monthly charges which, '
              'when exceeded, causes an alert to be triggered.')
+    parser.add_option('-p', '--period', dest='period', default=21600,
+        help='The period in seconds over which the estimated monthly '
+             'charges statistic is applied.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0 or \
@@ -65,7 +68,7 @@ def main():
             namespace='AWS/Billing',
             statistic='Maximum',
             dimensions={'Currency':'USD'},
-            period=21600,
+            period=opts.period,
             evaluation_periods=1,
             threshold=int(opts.threshold),
             comparison='>=')
