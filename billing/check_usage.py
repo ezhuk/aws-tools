@@ -115,8 +115,11 @@ def get_r53_usage():
 
 def get_elb_usage():
     elb = boto.connect_elb()
-    print '{0} Elastic Load Balancer(s)' \
-        .format(len(elb.get_all_load_balancers()))
+    lbs = elb.get_all_load_balancers()
+    ins = sum(len(x.instances) for x in lbs)
+    print '{0} Elastic Load Balancer(s){1}' \
+        .format(len(lbs), ' [{0} instance(s)]'.format(ins) \
+            if 0 != ins else '')
 
 
 def get_rds_usage():
