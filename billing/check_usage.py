@@ -19,6 +19,7 @@ import boto.route53
 import boto.s3
 import boto.sns
 import boto.sqs
+import boto.vpc
 import csv
 import itertools
 import optparse
@@ -128,6 +129,16 @@ def get_rds_usage():
         .format(len(rds.get_all_dbinstances()))
 
 
+def get_vpc_usage():
+    vpc = boto.connect_vpc()
+    cgs = vpc.get_all_customer_gateways()
+    igs = vpc.get_all_internet_gateways()
+    print '{0} Virtual Private Cloud(s)\n' \
+        '{1} Customer Gateway(s)\n' \
+        '{2} Internet Gateway(s)' \
+        .format(len(vpc.get_all_vpcs()), len(cgs), len(igs))
+
+
 def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
@@ -206,8 +217,9 @@ def main():
         get_r53_usage()
         get_elb_usage()
         get_rds_usage()
-        get_s3_usage()
         get_cf_usage()
+        get_vpc_usage()
+        get_s3_usage()
 
         get_aws_cost(opts.bucket, opts.period)
     except (Error, Exception), err:
