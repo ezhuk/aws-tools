@@ -135,8 +135,14 @@ def get_vpc_usage():
     igs = vpc.get_all_internet_gateways()
     print '{0} Virtual Private Cloud(s)\n' \
         '{1} Customer Gateway(s)\n' \
-        '{2} Internet Gateway(s)' \
-        .format(len(vpc.get_all_vpcs()), len(cgs), len(igs))
+        '{2} Internet Gateway(s)\n' \
+        '{3} Subnet(s)\n' \
+        '{4} VPN Gateway(s)' \
+        .format(len(vpc.get_all_vpcs()), \
+            len(cgs), \
+            len(igs), \
+            len(vpc.get_all_subnets()), \
+            len(vpc.get_all_vpn_gateways()))
 
 
 def get_s3_usage():
