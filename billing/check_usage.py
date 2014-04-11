@@ -18,6 +18,7 @@ import boto.rds
 import boto.route53
 import boto.s3
 import boto.sns
+import boto.sdb
 import boto.sqs
 import boto.vpc
 import csv
@@ -145,6 +146,12 @@ def get_vpc_usage():
             len(vpc.get_all_vpn_gateways()))
 
 
+def get_sdb_usage():
+    sdb = boto.connect_sdb()
+    print '{0} SimpleDB Domain(s)' \
+        .format(len(sdb.get_all_domains()))
+
+
 def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
@@ -225,6 +232,7 @@ def main():
         get_rds_usage()
         get_cf_usage()
         get_vpc_usage()
+        get_sdb_usage()
         get_s3_usage()
 
         get_aws_cost(opts.bucket, opts.period)
