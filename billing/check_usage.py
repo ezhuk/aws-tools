@@ -14,6 +14,7 @@ Usage:
 
 import boto.cloudfront
 import boto.ec2
+import boto.iam
 import boto.rds
 import boto.route53
 import boto.s3
@@ -152,6 +153,20 @@ def get_sdb_usage():
         .format(len(sdb.get_all_domains()))
 
 
+def get_iam_usage():
+    iam = boto.connect_iam()
+    us = iam.get_all_users()['list_users_response'] \
+            ['list_users_result'] \
+            ['users']
+    gs = iam.get_all_groups()['list_groups_response'] \
+            ['list_groups_result'] \
+            ['groups']
+    print '{0} User(s)\n' \
+        '{1} Group(s)' \
+        .format(len(us), \
+            len(gs))
+
+
 def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
@@ -234,6 +249,7 @@ def main():
         get_vpc_usage()
         get_sdb_usage()
         get_s3_usage()
+        get_iam_usage()
 
         get_aws_cost(opts.bucket, opts.period)
     except (Error, Exception), err:
