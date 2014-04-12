@@ -161,8 +161,8 @@ def get_iam_usage():
     gs = iam.get_all_groups()['list_groups_response'] \
             ['list_groups_result'] \
             ['groups']
-    print '{0} User(s)\n' \
-        '{1} Group(s)' \
+    print '{0} IAM User(s)\n' \
+        '{1} IAM Group(s)' \
         .format(len(us), \
             len(gs))
 
@@ -245,9 +245,9 @@ def main():
         get_r53_usage()
         get_elb_usage()
         get_rds_usage()
+        get_sdb_usage()
         get_cf_usage()
         get_vpc_usage()
-        get_sdb_usage()
         get_s3_usage()
         get_iam_usage()
 
