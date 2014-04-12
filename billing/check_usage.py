@@ -15,7 +15,7 @@ Usage:
 import boto.cloudfront
 import boto.ec2
 import boto.iam
-import boto.rds
+import boto.rds2
 import boto.route53
 import boto.s3
 import boto.sns
@@ -126,9 +126,21 @@ def get_elb_usage():
 
 
 def get_rds_usage():
-    rds = boto.connect_rds()
-    print '{0} RDS Instance(s)' \
-        .format(len(rds.get_all_dbinstances()))
+    rds = boto.connect_rds2()
+    ds = rds.describe_db_instances()['DescribeDBInstancesResponse'] \
+            ['DescribeDBInstancesResult'] \
+            ['DBInstances']
+    rs = rds.describe_reserved_db_instances() \
+            ['DescribeReservedDBInstancesResponse'] \
+            ['DescribeReservedDBInstancesResult'] \
+            ['ReservedDBInstances']
+    ss = rds.describe_db_snapshots()['DescribeDBSnapshotsResponse'] \
+            ['DescribeDBSnapshotsResult'] \
+            ['DBSnapshots']
+    print '{0} RDS Instance(s)\n' \
+        '{1} RDS Reserved Instance(s)\n' \
+        '{2} RDS Snapshot(s)' \
+        .format(len(ds), len(rs), len(ss))
 
 
 def get_vpc_usage():
