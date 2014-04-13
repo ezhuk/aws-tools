@@ -15,6 +15,7 @@ Usage:
 import boto.cloudfront
 import boto.ec2
 import boto.emr
+import boto.glacier
 import boto.iam
 import boto.rds2
 import boto.route53
@@ -173,6 +174,12 @@ def get_emr_usage():
         .format(len(cs))
 
 
+def get_gc_usage():
+    gc = boto.connect_glacier()
+    print '{0} Glacier Vault(s)' \
+        .format(len(gc.list_vaults()))
+
+
 def get_iam_usage():
     iam = boto.connect_iam()
     us = iam.get_all_users()['list_users_response'] \
@@ -269,6 +276,7 @@ def main():
         get_emr_usage()
         get_cf_usage()
         get_vpc_usage()
+        get_gc_usage()
         get_s3_usage()
         get_iam_usage()
 
