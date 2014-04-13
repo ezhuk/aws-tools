@@ -14,6 +14,7 @@ Usage:
 
 import boto.cloudfront
 import boto.ec2
+import boto.emr
 import boto.iam
 import boto.rds2
 import boto.route53
@@ -165,6 +166,13 @@ def get_sdb_usage():
         .format(len(sdb.get_all_domains()))
 
 
+def get_emr_usage():
+    emr = boto.connect_emr()
+    cs = emr.list_clusters().clusters
+    print '{0} EMR Cluster(s)' \
+        .format(len(cs))
+
+
 def get_iam_usage():
     iam = boto.connect_iam()
     us = iam.get_all_users()['list_users_response'] \
@@ -258,6 +266,7 @@ def main():
         get_elb_usage()
         get_rds_usage()
         get_sdb_usage()
+        get_emr_usage()
         get_cf_usage()
         get_vpc_usage()
         get_s3_usage()
