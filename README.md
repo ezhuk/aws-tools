@@ -14,7 +14,50 @@ and auto scaling group, scaling policies and metric alarms to automatically
 provision or shutdown one or more EC2 instances if an average CPU utilization
 exceeds the maximum threshold or goes below the minimum threshold respectively.
 
-```bash
+```
+Usage:
+    configure_auto_scaling [options]
+
+Options:
+    -n NAME, --name=NAME  The name of this configuration (e.g., TEST).
+    -i IMAGE, --image=IMAGE
+                        The Amazon  Machine  Image (AMI) ID that will be used
+                        to launch EC2 instances. The most recent Amazon Linux
+                        AMI 2013.09.2 (ami-a43909e1) is used by default.
+    -t TYPE, --type=TYPE  The type of the Amazon EC2 instance. If not specified,
+                        micro instance (t1.micro) type will be used.
+    -k KEY, --key=KEY     The name of the key pair to use when creating EC2
+                        instances. This options is required.
+    -g GROUP, --group=GROUP
+                        Security group that will be used when creating EC2
+                        instances. This option is required.
+    -m MIN, --min=MIN     The minimum number of EC2 instances in the auto
+                        scaling group. If not specified, 2 will be used.
+    -M MAX, --max=MAX     The maximum size of the auto scaling group. By default
+                        it is set to 4.
+    -z ZONES, --zone=ZONES
+                        The availability zone for the auto scaling group. This
+                        option is required.
+    -l LBS, --load-balancer=LBS
+                        The name of an existing AWS load balancer to use, if
+                        any.
+    --min-threshold=MIN_THRESHOLD
+                        The minimum CPU utilization threshold that triggers an
+                        alarm. This option is not required and is set to 40%
+                        by default.
+    --max-threshold=MAX_THRESHOLD
+                        The maximum CPU utilization threshold that triggers an
+                        alarm. This option is not required and is set to 60%
+                        by default.
+    -a ADJUSTMENT, --adjustment=ADJUSTMENT
+                        The number of EC2 instances by which to scale up or
+                        down. This is set to 1 by default.
+    -p PERIOD, --period=PERIOD
+                        The evaluation period in seconds. This is optional and
+                        is set to 300 seconds by default.
+    -h, --help            show this help message and exit
+
+Example:
 ./configure_auto_scaling.py \
     --name TEST \
     --image ami-a43909e1 \
