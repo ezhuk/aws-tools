@@ -55,7 +55,7 @@ Options:
     -p PERIOD, --period=PERIOD
                         The evaluation period in seconds. This is optional and
                         is set to 300 seconds by default.
-    -h, --help            show this help message and exit
+    -h, --help          Show this help message and exit
 
 Example:
 ./configure_auto_scaling.py \
@@ -83,7 +83,18 @@ to the currently running instances and remove the ones that are no longer used.
 This tool is supposed to be run periodically (e.g., every minute or so) and
 can be configured as a cron job as follows:
 
-```bash
+```
+Usage:
+    haproxy_autoscale.py [options]
+
+Options:
+    -c CONFIG, --config=CONFIG
+                        HAProxy configuration file to use.
+    -g GROUPS, --group=GROUPS
+                        The ID of a security group.
+    -h, --help          Show this help message and exit
+
+Example:
 */1 * * * * user /usr/sbin/haproxy_autoscale.py --group MySecurityGroup
 ```
 
@@ -93,7 +104,15 @@ Gracefully shuts down previously created Auto Scaling configuration. This script
 also deletes scaling policies, metric alarms and launch configuration associated
 with the specified Auto Scaling group.
 
-```bash
+```
+Usage:
+    shutdown_auto_scaling.py [options]
+
+Options:
+    -n NAME, --name=NAME  The name of the configuration to shutdown (e.g., TEST).
+    -h, --help            Show this help message and exit
+
+Example:
 ./shutdown_auto_scaling.py --name TEST
 ```
 
@@ -105,7 +124,21 @@ Retrieves AWS usage information for the specified billing period and displays
 estimated total charges (including credits, if any). Note that for this to work,
 receiving monthly billing reports must be enabled in account preferences.
 
-```bash
+```
+Usage:
+    check_usage.py [options]
+
+Options:
+    -b BUCKET, --bucket=BUCKET
+                        The name of the S3 bucket that holds billing reports.
+                        This option is required.
+    -p PERIOD, --period=PERIOD
+                        The billing period to check the usage for (e.g.,
+                        '2014-02' without quotes). Defaults to the current
+                        billing period if not specified.
+    -h, --help          Show this help message and exit
+
+Example:
 ./check_usage.py --bucket MyBucket
 ```
 
@@ -116,7 +149,24 @@ that an email notification gets sent to the specified email address whenever the
 estimated monthly charges exceed the specified threshold. Note that metric data
 monitoring must be enabled in billing preferences prior to configuring this alert.
 
-```bash
+```
+Usage:
+    configure_billing_alert.py [options]
+
+Options:
+    -e EMAIL, --email=EMAIL
+                        The email address to send notifications to whenever an
+                        alert is triggered.
+    -n NAME, --name=NAME  The name of the alarm (e.g., BillingAlarm-1000).
+    -t THRESHOLD, --threshold=THRESHOLD
+                        The dollar amount of estimated monthly charges which,
+                        when exceeded, causes an alert to be triggered.
+    -p PERIOD, --period=PERIOD
+                        The period in seconds over which the estimated monthly
+                        charges statistic is applied.
+    -h, --help          Show this help message and exit
+
+Example:
 ./configure_billing_alert.py \
     --email name@example.com \
     --name BillingAlert-1000 \
