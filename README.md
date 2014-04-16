@@ -180,7 +180,17 @@ Example:
 Checks the current status of one or more existing AWS Elastic Block Store (EBS)
 snapshots and displays progress bar(s) with percentage of completion.
 
-```bash
+```
+Usage:
+    check_snapshot_status.py [options]
+
+Options:
+    -s SNAPSHOTS, --snapshot=SNAPSHOTS
+                        The snapshot ID(s) to check status for. This option is
+                        required.
+    -h, --help          Show this help message and exit
+
+Example:
 ./check_snapshot_status.py --snapshot snap-012345ab
 ```
 
@@ -199,7 +209,17 @@ and strong ciphers. Since ELB does not seem to support ECDHE at this time, forwa
 secrecy is provided by the DHE suite which can be disabled if performance is of
 concern.
 
-```bash
+```
+Usage:
+    configure_ssl_policy.py [options]
+
+Options:
+    -l LBS, --load-balancer=LBS
+                        A list of AWS load balancers to configure the policy
+                        on. This option is required.
+    -h, --help          Show this help message and exit
+
+Example:
 ./configure_ssl_policy.py --load-balancer MyLoadBalancer
 ```
 
@@ -211,7 +231,19 @@ Confirms an HTTP(S) endpoint subscription to an Amazon Simple Notification Servi
 (SNS) topic by visiting the URL specified in the confirmation request from SNS.
 It is supposed to run on the endpoint that is going to be subscribed.
 
-```bash
+```
+Usage:
+    confirm_subscription.py [options]
+
+Options:
+    -p PORT, --port=PORT  The port number to listen on. This option is not
+                          required and is set to 8080 by default.
+    -s, --ssl             Enable SSL/TLS. This option is not required.
+    -k KEY, --key=KEY     A private key file to be used when SSL is enabled.
+    -c CERT, --cert=CERT  A certificate file to be used when SSL is enabled.
+    -h, --help            Show this help message and exit
+
+Example:
 ./confirm_subscription.py --port 8080
 ```
 
