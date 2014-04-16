@@ -17,6 +17,7 @@ import boto.ec2
 import boto.emr
 import boto.glacier
 import boto.iam
+import boto.kinesis
 import boto.rds2
 import boto.route53
 import boto.s3
@@ -143,6 +144,12 @@ def get_rds_usage():
         '{1} RDS Reserved Instance(s)\n' \
         '{2} RDS Snapshot(s)' \
         .format(len(ds), len(rs), len(ss))
+
+
+def get_ks_usage():
+    ks = boto.connect_kinesis()
+    print '{0} Kinesis Stream(s)' \
+        .format(len(ks.list_streams()['StreamNames']))
 
 
 def get_vpc_usage():
@@ -275,6 +282,7 @@ def main():
         get_sdb_usage()
         get_emr_usage()
         get_cf_usage()
+        get_ks_usage()
         get_vpc_usage()
         get_gc_usage()
         get_s3_usage()
