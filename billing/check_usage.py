@@ -19,6 +19,7 @@ import boto.glacier
 import boto.iam
 import boto.kinesis
 import boto.rds2
+import boto.redshift
 import boto.route53
 import boto.s3
 import boto.sns
@@ -174,6 +175,15 @@ def get_sdb_usage():
         .format(len(sdb.get_all_domains()))
 
 
+def get_rs_usage():
+    rs = boto.connect_redshift()
+    cs = rs.describe_clusters()['DescribeClustersResponse'] \
+        ['DescribeClustersResult'] \
+        ['Clusters']
+    print '{0} Redshift Cluster(s)' \
+        .format(len(cs))
+
+
 def get_emr_usage():
     emr = boto.connect_emr()
     cs = emr.list_clusters().clusters
@@ -280,6 +290,7 @@ def main():
         get_elb_usage()
         get_rds_usage()
         get_sdb_usage()
+        get_rs_usage()
         get_emr_usage()
         get_cf_usage()
         get_ks_usage()
