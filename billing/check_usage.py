@@ -18,6 +18,7 @@ import boto.emr
 import boto.glacier
 import boto.iam
 import boto.kinesis
+import boto.opsworks
 import boto.rds2
 import boto.redshift
 import boto.route53
@@ -220,6 +221,12 @@ def get_s3_usage():
         .format(len(buckets), res / float(1024 * 1024 * 1024))
 
 
+def get_ow_usage():
+    ow = boto.connect_opsworks()
+    print '{0} OpsWorks Stack(s)' \
+        .format(len(ow.describe_stacks()['Stacks']))
+
+
 def get_aws_cost(bucket_name, time_period):
     s3 = boto.connect_s3()
     bucket = s3.lookup(bucket_name)
@@ -297,6 +304,7 @@ def main():
         get_vpc_usage()
         get_gc_usage()
         get_s3_usage()
+        get_ow_usage()
         get_iam_usage()
 
         get_aws_cost(opts.bucket, opts.period)
