@@ -203,11 +203,8 @@ server-side TLS settings for the default HTTPS listener on an Elastic Load
 Balancer (ELB). Even though ELB supports latest TLS versions and recommended
 ciphers they are not enabled by default for some reasons.
 
-
-This script enables the most recent and more secure TLS v1.2 and v1.1 versions
-and strong ciphers. Since ELB does not seem to support ECDHE at this time, forward
-secrecy is provided by the DHE suite which can be disabled if performance is of
-concern.
+This script enables the most recent and more secure TLS v1.2 and v1.1 versions, strong
+ciphers, including ECDHE to enable forward secrecy, and order preferences.
 
 ```
 Usage:
