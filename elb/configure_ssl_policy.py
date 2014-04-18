@@ -5,13 +5,9 @@
 
 """Configures AWS Elastic Load Balancer (ELB) SSL settings.
 
-A tool to properly configure SSL settings for AWS load balancers. Even
-though ELB supports TLS v1.2 and v1.1 protocols and certain recommended
-ciphers, they are not enabled by default.
-
-This script creates a new SSL policy with the correct TLS versions and
-ciphers enabled and applies it to the default HTTPS listener (port 443)
-on the load balancer.
+A tool to configure SSL settings for AWS load balancers. It creates a new
+SSL policy with the correct TLS versions and ciphers enabled and applies
+it to the default HTTPS listener (port 443) on the load balancer.
 
 Usage:
     ./configure_ssl_policy.py [options]
@@ -48,16 +44,20 @@ def main():
             'Protocol-TLSv1': True,
             'Protocol-TLSv1.1': True,
             'Protocol-TLSv1.2': True,
-            'DHE-RSA-AES128-GCM-SHA256': True,
-            'DHE-RSA-AES256-GCM-SHA384': True,
-            'AES128-GCM-SHA256': True,
-            'AES256-GCM-SHA384': True,
+            'Server-Defined-Cipher-Order': True,
+            'ECDHE-ECDSA-AES128-GCM-SHA256': True,
+            'ECDHE-RSA-AES128-GCM-SHA256': True,
+            'ECDHE-ECDSA-AES128-SHA256': True,
+            'ECDHE-RSA-AES128-SHA256': True,
+            'ECDHE-ECDSA-AES128-SHA': True,
+            'ECDHE-RSA-AES128-SHA': True,
+            'ECDHE-RSA-AES256-SHA': True,
+            'AES128-SHA256': True,
             'AES128-SHA': True,
+            'AES256-SHA256': True,
             'AES256-SHA': True,
-            'DHE-RSA-AES128-SHA': True,
-            'DHE-RSA-AES256-SHA': True,
-            'RC4-MD5': False,
-            'DES-CBC3-SHA': False
+            'ECDHE-RSA-RC4-SHA': True,
+            'RC4-SHA': True
         }
 
         for lb in opts.lbs:
