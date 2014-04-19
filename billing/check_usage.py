@@ -13,6 +13,7 @@ Usage:
 """
 
 import boto.cloudfront
+import boto.dynamodb2
 import boto.ec2
 import boto.emr
 import boto.glacier
@@ -80,6 +81,16 @@ def get_cf_usage():
         [x.get_distribution().get_objects() for x in ds])))
     print '{0} CloudFront Distribution(s){1}' \
         .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
+
+
+def get_ddb_usage():
+    ts = []
+    for r in boto.dynamodb2.regions():
+        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
+            ddb = boto.dynamodb2.connect_to_region(r.name)
+            ts.extend(ddb.list_tables()['TableNames'])
+    print '{0} DynamoDB Table(s)' \
+        .format(len(ts))
 
 
 def get_as_usage():
@@ -300,6 +311,7 @@ def main():
         get_rs_usage()
         get_emr_usage()
         get_cf_usage()
+        get_ddb_usage()
         get_ks_usage()
         get_vpc_usage()
         get_gc_usage()
