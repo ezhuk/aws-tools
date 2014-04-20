@@ -15,6 +15,7 @@ Usage:
 import boto.cloudfront
 import boto.dynamodb2
 import boto.ec2
+import boto.elasticache
 import boto.emr
 import boto.glacier
 import boto.iam
@@ -196,6 +197,19 @@ def get_rs_usage():
         .format(len(cs))
 
 
+def get_ec_usage():
+    cs = []
+    for r in boto.elasticache.regions():
+        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
+            ec = boto.elasticache.connect_to_region(r.name)
+            cs.extend(ec.describe_cache_clusters() \
+                ['DescribeCacheClustersResponse'] \
+                ['DescribeCacheClustersResult'] \
+                ['CacheClusters'])
+    print '{0} ElastiCache Cluster(s)' \
+        .format(len(cs))
+
+
 def get_emr_usage():
     emr = boto.connect_emr()
     cs = emr.list_clusters().clusters
@@ -309,6 +323,7 @@ def main():
         get_rds_usage()
         get_sdb_usage()
         get_rs_usage()
+        get_ec_usage()
         get_emr_usage()
         get_cf_usage()
         get_ddb_usage()
