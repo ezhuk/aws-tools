@@ -206,8 +206,9 @@ def get_ec_usage():
                 ['DescribeCacheClustersResponse'] \
                 ['DescribeCacheClustersResult'] \
                 ['CacheClusters'])
-    print '{0} ElastiCache Cluster(s)' \
-        .format(len(cs))
+    ns = cs[0]['NumCacheNodes'] if 0 != len(cs) else 0
+    print '{0} ElastiCache Cluster(s){1}' \
+        .format(len(cs), '[{0} Node(s)]'.format(ns) if 0 != ns else '')
 
 
 def get_emr_usage():
