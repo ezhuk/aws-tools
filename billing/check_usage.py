@@ -41,6 +41,11 @@ class Error(Exception):
     pass
 
 
+def get_regions(service):
+    return [r for r in service.regions() \
+        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-'))]
+
+
 def get_ec2_usage():
     ec2 = boto.connect_ec2()
     addrs = ec2.get_all_addresses()
@@ -86,10 +91,9 @@ def get_cf_usage():
 
 def get_ddb_usage():
     ts = []
-    for r in boto.dynamodb2.regions():
-        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
-            ddb = boto.dynamodb2.connect_to_region(r.name)
-            ts.extend(ddb.list_tables()['TableNames'])
+    for r in get_regions(boto.dynamodb2):
+        ddb = boto.dynamodb2.connect_to_region(r.name)
+        ts.extend(ddb.list_tables()['TableNames'])
     ms = sum(t.count() for t in ts)
     print '{0} DynamoDB Table(s){1}' \
         .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
@@ -130,7 +134,7 @@ def get_r53_usage():
     r53 = boto.connect_route53()
     zones = r53.get_zones()
     records = sum(len(z.get_records()) for z in zones)
-    print '{0} Hosted Zone(s) [{1} record(s)]' \
+    print '{0} Route53 Hosted Zone(s) [{1} record(s)]' \
         .format(len(zones), records)
 
 
