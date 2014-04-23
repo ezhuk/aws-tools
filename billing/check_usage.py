@@ -90,8 +90,9 @@ def get_ddb_usage():
         if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
             ddb = boto.dynamodb2.connect_to_region(r.name)
             ts.extend(ddb.list_tables()['TableNames'])
-    print '{0} DynamoDB Table(s)' \
-        .format(len(ts))
+    ms = sum(t.count() for t in ts)
+    print '{0} DynamoDB Table(s){1}' \
+        .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
 
 
 def get_as_usage():
