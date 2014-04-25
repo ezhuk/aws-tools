@@ -15,6 +15,7 @@ Usage:
 import boto.cloudfront
 import boto.dynamodb2
 import boto.ec2
+import boto.ec2.cloudwatch
 import boto.elasticache
 import boto.emr
 import boto.glacier
@@ -85,25 +86,6 @@ def get_ec2_usage():
             len(ec2.get_all_tags()))
 
 
-def get_cloudfront_usage():
-    cf = boto.connect_cloudfront()
-    ds = cf.get_all_distributions()
-    os = len(list(itertools.chain.from_iterable( \
-        [x.get_distribution().get_objects() for x in ds])))
-    print '{0} CloudFront Distribution(s){1}' \
-        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
-
-
-def get_dynamodb_usage(regions):
-    ts = []
-    for r in get_regions(boto.dynamodb2, regions):
-        ddb = boto.dynamodb2.connect_to_region(r.name)
-        ts.extend(ddb.list_tables()['TableNames'])
-    ms = sum(t.count() for t in ts)
-    print '{0} DynamoDB Table(s){1}' \
-        .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
-
-
 def get_as_usage():
     autoscale = boto.connect_autoscale()
     gs = len(autoscale.get_all_groups())
@@ -117,22 +99,29 @@ def get_as_usage():
             len(autoscale.get_all_policies()))
 
 
-def get_sns_usage():
-    sns = boto.connect_sns()
-    print '{0} Topic(s)\n' \
-        '{1} Subscription(s)' \
-        .format(len(sns.get_all_topics()), \
-            len(sns.get_all_subscriptions()))
+def get_elb_usage():
+    elb = boto.connect_elb()
+    lbs = elb.get_all_load_balancers()
+    ins = sum(len(x.instances) for x in lbs)
+    print '{0} Elastic Load Balancer(s){1}' \
+        .format(len(lbs), ' [{0} instance(s)]'.format(ins) \
+            if 0 != ins else '')
 
 
-def get_sqs_usage():
-    sqs = boto.connect_sqs()
-    print '{0} Queue(s)'.format(len(sqs.get_all_queues()))
-
-
-def get_cw_usage():
-    cw = boto.connect_cloudwatch()
-    print '{0} Alarm(s)'.format(len(cw.describe_alarms()))
+def get_vpc_usage():
+    vpc = boto.connect_vpc()
+    cgs = vpc.get_all_customer_gateways()
+    igs = vpc.get_all_internet_gateways()
+    print '{0} Virtual Private Cloud(s)\n' \
+        '{1} Customer Gateway(s)\n' \
+        '{2} Internet Gateway(s)\n' \
+        '{3} Subnet(s)\n' \
+        '{4} VPN Gateway(s)' \
+        .format(len(vpc.get_all_vpcs()), \
+            len(cgs), \
+            len(igs), \
+            len(vpc.get_all_subnets()), \
+            len(vpc.get_all_vpn_gateways()))
 
 
 def get_route53_usage():
@@ -143,13 +132,34 @@ def get_route53_usage():
         .format(len(zones), records)
 
 
-def get_elb_usage():
-    elb = boto.connect_elb()
-    lbs = elb.get_all_load_balancers()
-    ins = sum(len(x.instances) for x in lbs)
-    print '{0} Elastic Load Balancer(s){1}' \
-        .format(len(lbs), ' [{0} instance(s)]'.format(ins) \
-            if 0 != ins else '')
+def get_s3_usage():
+    s3 = boto.connect_s3()
+    buckets = s3.get_all_buckets()
+    res = sum([k.size for k in itertools.chain.from_iterable( \
+        [b.get_all_keys() for b in buckets])])
+    print '{0} S3 Bucket(s) [{1:.3f} GB]' \
+        .format(len(buckets), res / float(1024 * 1024 * 1024))
+
+
+def get_glacier_usage():
+    gc = boto.connect_glacier()
+    print '{0} Glacier Vault(s)' \
+        .format(len(gc.list_vaults()))
+
+
+def get_cloudfront_usage():
+    cf = boto.connect_cloudfront()
+    ds = cf.get_all_distributions()
+    os = len(list(itertools.chain.from_iterable( \
+        [x.get_distribution().get_objects() for x in ds])))
+    print '{0} CloudFront Distribution(s){1}' \
+        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
+
+
+def get_sdb_usage():
+    sdb = boto.connect_sdb()
+    print '{0} SimpleDB Domain(s)' \
+        .format(len(sdb.get_all_domains()))
 
 
 def get_rds_usage():
@@ -170,41 +180,14 @@ def get_rds_usage():
         .format(len(ds), len(rs), len(ss))
 
 
-def get_ks_usage():
-    ks = boto.connect_kinesis()
-    print '{0} Kinesis Stream(s)' \
-        .format(len(ks.list_streams()['StreamNames']))
-
-
-def get_vpc_usage():
-    vpc = boto.connect_vpc()
-    cgs = vpc.get_all_customer_gateways()
-    igs = vpc.get_all_internet_gateways()
-    print '{0} Virtual Private Cloud(s)\n' \
-        '{1} Customer Gateway(s)\n' \
-        '{2} Internet Gateway(s)\n' \
-        '{3} Subnet(s)\n' \
-        '{4} VPN Gateway(s)' \
-        .format(len(vpc.get_all_vpcs()), \
-            len(cgs), \
-            len(igs), \
-            len(vpc.get_all_subnets()), \
-            len(vpc.get_all_vpn_gateways()))
-
-
-def get_sdb_usage():
-    sdb = boto.connect_sdb()
-    print '{0} SimpleDB Domain(s)' \
-        .format(len(sdb.get_all_domains()))
-
-
-def get_redshift_usage():
-    rs = boto.connect_redshift()
-    cs = rs.describe_clusters()['DescribeClustersResponse'] \
-        ['DescribeClustersResult'] \
-        ['Clusters']
-    print '{0} Redshift Cluster(s)' \
-        .format(len(cs))
+def get_dynamodb_usage(regions):
+    ts = []
+    for r in get_regions(boto.dynamodb2, regions):
+        ddb = boto.dynamodb2.connect_to_region(r.name)
+        ts.extend(ddb.list_tables()['TableNames'])
+    ms = sum(t.count() for t in ts)
+    print '{0} DynamoDB Table(s){1}' \
+        .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
 
 
 def get_elasticache_usage():
@@ -221,6 +204,15 @@ def get_elasticache_usage():
         .format(len(cs), '[{0} Node(s)]'.format(ns) if 0 != ns else '')
 
 
+def get_redshift_usage():
+    rs = boto.connect_redshift()
+    cs = rs.describe_clusters()['DescribeClustersResponse'] \
+        ['DescribeClustersResult'] \
+        ['Clusters']
+    print '{0} Redshift Cluster(s)' \
+        .format(len(cs))
+
+
 def get_emr_usage():
     emr = boto.connect_emr()
     cs = emr.list_clusters().clusters
@@ -228,10 +220,23 @@ def get_emr_usage():
         .format(len(cs))
 
 
-def get_glacier_usage():
-    gc = boto.connect_glacier()
-    print '{0} Glacier Vault(s)' \
-        .format(len(gc.list_vaults()))
+def get_kinesis_usage():
+    ks = boto.connect_kinesis()
+    print '{0} Kinesis Stream(s)' \
+        .format(len(ks.list_streams()['StreamNames']))
+
+
+def get_sns_usage():
+    sns = boto.connect_sns()
+    print '{0} SNS Topic(s)\n' \
+        '{1} SNS Subscription(s)' \
+        .format(len(sns.get_all_topics()), \
+            len(sns.get_all_subscriptions()))
+
+
+def get_sqs_usage():
+    sqs = boto.connect_sqs()
+    print '{0} Queue(s)'.format(len(sqs.get_all_queues()))
 
 
 def get_iam_usage():
@@ -248,16 +253,16 @@ def get_iam_usage():
             len(gs))
 
 
-def get_s3_usage():
-    s3 = boto.connect_s3()
-    buckets = s3.get_all_buckets()
-    res = sum([k.size for k in itertools.chain.from_iterable( \
-        [b.get_all_keys() for b in buckets])])
-    print '{0} S3 Bucket(s) [{1:.3f} GB]' \
-        .format(len(buckets), res / float(1024 * 1024 * 1024))
+def get_cloudwatch_usage(regions):
+    alarms = []
+    for r in get_regions(boto.ec2.cloudwatch, regions):
+        c = boto.ec2.cloudwatch.connect_to_region(r.name)
+        alarms.extend(c.describe_alarms())
+    print '{0} CloudWatch Alarm(s)' \
+        .format(len(alarms))
 
 
-def get_ow_usage():
+def get_opsworks_usage():
     ow = boto.connect_opsworks()
     print '{0} OpsWorks Stack(s)' \
         .format(len(ow.describe_stacks()['Stacks']))
@@ -328,12 +333,13 @@ def main():
     try:
         get_ec2_usage()
         get_as_usage()
-        get_sns_usage()
-        get_sqs_usage()
-        get_cw_usage()
-        get_route53_usage()
         get_elb_usage()
         get_vpc_usage()
+        get_route53_usage()
+
+        get_s3_usage()
+        get_glacier_usage()
+        get_cloudfront_usage()
 
         get_sdb_usage()
         get_rds_usage()
@@ -341,13 +347,14 @@ def main():
         get_elasticache_usage()
         get_redshift_usage()
 
-        get_s3_usage()
-        get_glacier_usage()
-        get_cloudfront_usage()
-
         get_emr_usage()
-        get_ks_usage()
-        get_ow_usage()
+        get_kinesis_usage()
+
+        get_sns_usage()
+        get_sqs_usage()
+
+        get_cloudwatch_usage(opts.regions)
+        get_opsworks_usage()
         get_iam_usage()
 
         get_aws_cost(opts.bucket, opts.period)
