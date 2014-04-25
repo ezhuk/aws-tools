@@ -235,12 +235,14 @@ def get_kinesis_usage():
         .format(len(ks.list_streams()['StreamNames']))
 
 
-def get_sns_usage():
-    sns = boto.connect_sns()
+def get_sns_usage(regions):
+    cs = connect_to_regions(boto.sns, regions)
     print '{0} SNS Topic(s)\n' \
         '{1} SNS Subscription(s)' \
-        .format(len(sns.get_all_topics()), \
-            len(sns.get_all_subscriptions()))
+        .format(sum(len(c.get_all_topics()['ListTopicsResponse'] \
+                ['ListTopicsResult']['Topics']) for c in cs),
+            sum(len(c.get_all_subscriptions()['ListSubscriptionsResponse'] \
+                ['ListSubscriptionsResult']['Subscriptions']) for c in cs))
 
 
 def get_sqs_usage():
@@ -356,7 +358,7 @@ def main():
         get_emr_usage()
         get_kinesis_usage()
 
-        get_sns_usage()
+        get_sns_usage(opts.regions)
         get_sqs_usage()
 
         get_cloudwatch_usage(opts.regions)
