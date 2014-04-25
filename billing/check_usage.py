@@ -52,6 +52,15 @@ def get_regions(service, regions):
                     r.name.startswith('us-gov-'))]
 
 
+def connect_to_regions(service, regions):
+    if regions is not None:
+        return [service.connect_to_region(r.name) for r in service.regions() \
+            if r.name in regions]
+    else:
+        return [service.connect_to_region(r.name) for r in service.regions() \
+            if not (r.name.startswith('cn-') or r.name.startswith('us-gov-'))]
+
+
 def get_ec2_usage():
     ec2 = boto.connect_ec2()
     addrs = ec2.get_all_addresses()
@@ -254,12 +263,9 @@ def get_iam_usage():
 
 
 def get_cloudwatch_usage(regions):
-    alarms = []
-    for r in get_regions(boto.ec2.cloudwatch, regions):
-        c = boto.ec2.cloudwatch.connect_to_region(r.name)
-        alarms.extend(c.describe_alarms())
+    cs = connect_to_regions(boto.ec2.cloudwatch, regions)
     print '{0} CloudWatch Alarm(s)' \
-        .format(len(alarms))
+        .format(sum(len(c.describe_alarms()) for c in cs))
 
 
 def get_opsworks_usage():
