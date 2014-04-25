@@ -199,18 +199,13 @@ def get_dynamodb_usage(regions):
         .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
 
 
-def get_elasticache_usage():
-    cs = []
-    for r in boto.elasticache.regions():
-        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
-            ec = boto.elasticache.connect_to_region(r.name)
-            cs.extend(ec.describe_cache_clusters() \
-                ['DescribeCacheClustersResponse'] \
-                ['DescribeCacheClustersResult'] \
-                ['CacheClusters'])
-    ns = cs[0]['NumCacheNodes'] if 0 != len(cs) else 0
-    print '{0} ElastiCache Cluster(s){1}' \
-        .format(len(cs), '[{0} Node(s)]'.format(ns) if 0 != ns else '')
+def get_elasticache_usage(regions):
+    cs = connect_to_regions(boto.elasticache, regions)
+    print '{0} ElastiCache Cluster(s)' \
+        .format(sum(len(c.describe_cache_clusters() \
+            ['DescribeCacheClustersResponse'] \
+            ['DescribeCacheClustersResult'] \
+            ['CacheClusters']) for c in cs))
 
 
 def get_redshift_usage():
@@ -245,9 +240,10 @@ def get_sns_usage(regions):
                 ['ListSubscriptionsResult']['Subscriptions']) for c in cs))
 
 
-def get_sqs_usage():
-    sqs = boto.connect_sqs()
-    print '{0} Queue(s)'.format(len(sqs.get_all_queues()))
+def get_sqs_usage(regions):
+    cs = connect_to_regions(boto.sqs, regions)
+    print '{0} SQS Queue(s)' \
+        .format(sum(len(c.get_all_queues()) for c in cs))
 
 
 def get_iam_usage():
@@ -352,14 +348,14 @@ def main():
         get_sdb_usage()
         get_rds_usage()
         get_dynamodb_usage(opts.regions)
-        get_elasticache_usage()
+        get_elasticache_usage(opts.regions)
         get_redshift_usage()
 
         get_emr_usage()
         get_kinesis_usage()
 
         get_sns_usage(opts.regions)
-        get_sqs_usage()
+        get_sqs_usage(opts.regions)
 
         get_cloudwatch_usage(opts.regions)
         get_opsworks_usage()
