@@ -41,9 +41,14 @@ class Error(Exception):
     pass
 
 
-def get_regions(service):
-    return [r for r in service.regions() \
-        if not (r.name.startswith('cn-') or r.name.startswith('us-gov-'))]
+def get_regions(service, regions):
+    if regions is not None:
+        return [r for r in service.regions() \
+            if r.name in regions]
+    else:
+        return [r for r in service.regions() \
+            if not (r.name.startswith('cn-') or \
+                    r.name.startswith('us-gov-'))]
 
 
 def get_ec2_usage():
@@ -89,9 +94,9 @@ def get_cf_usage():
         .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
 
 
-def get_ddb_usage():
+def get_ddb_usage(regions):
     ts = []
-    for r in get_regions(boto.dynamodb2):
+    for r in get_regions(boto.dynamodb2, regions):
         ddb = boto.dynamodb2.connect_to_region(r.name)
         ts.extend(ddb.list_tables()['TableNames'])
     ms = sum(t.count() for t in ts)
@@ -311,6 +316,8 @@ def main():
         help='The billing period to check the usage for (e.g., \'2014-02\' '
              'without quotes). Defaults to the current billing period if '
              'not specified.')
+    parser.add_option('-r', '--region', dest='regions', action='append',
+        help='The name of the region to usage for.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0 or \
@@ -332,7 +339,7 @@ def main():
         get_ec_usage()
         get_emr_usage()
         get_cf_usage()
-        get_ddb_usage()
+        get_ddb_usage(opts.regions)
         get_ks_usage()
         get_vpc_usage()
         get_gc_usage()
