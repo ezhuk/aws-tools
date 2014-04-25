@@ -85,7 +85,7 @@ def get_ec2_usage():
             len(ec2.get_all_tags()))
 
 
-def get_cf_usage():
+def get_cloudfront_usage():
     cf = boto.connect_cloudfront()
     ds = cf.get_all_distributions()
     os = len(list(itertools.chain.from_iterable( \
@@ -94,7 +94,7 @@ def get_cf_usage():
         .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
 
 
-def get_ddb_usage(regions):
+def get_dynamodb_usage(regions):
     ts = []
     for r in get_regions(boto.dynamodb2, regions):
         ddb = boto.dynamodb2.connect_to_region(r.name)
@@ -135,7 +135,7 @@ def get_cw_usage():
     print '{0} Alarm(s)'.format(len(cw.describe_alarms()))
 
 
-def get_r53_usage():
+def get_route53_usage():
     r53 = boto.connect_route53()
     zones = r53.get_zones()
     records = sum(len(z.get_records()) for z in zones)
@@ -198,7 +198,7 @@ def get_sdb_usage():
         .format(len(sdb.get_all_domains()))
 
 
-def get_rs_usage():
+def get_redshift_usage():
     rs = boto.connect_redshift()
     cs = rs.describe_clusters()['DescribeClustersResponse'] \
         ['DescribeClustersResult'] \
@@ -207,7 +207,7 @@ def get_rs_usage():
         .format(len(cs))
 
 
-def get_ec_usage():
+def get_elasticache_usage():
     cs = []
     for r in boto.elasticache.regions():
         if not (r.name.startswith('cn-') or r.name.startswith('us-gov-')):
@@ -228,7 +228,7 @@ def get_emr_usage():
         .format(len(cs))
 
 
-def get_gc_usage():
+def get_glacier_usage():
     gc = boto.connect_glacier()
     print '{0} Glacier Vault(s)' \
         .format(len(gc.list_vaults()))
@@ -331,19 +331,22 @@ def main():
         get_sns_usage()
         get_sqs_usage()
         get_cw_usage()
-        get_r53_usage()
+        get_route53_usage()
         get_elb_usage()
-        get_rds_usage()
-        get_sdb_usage()
-        get_rs_usage()
-        get_ec_usage()
-        get_emr_usage()
-        get_cf_usage()
-        get_ddb_usage(opts.regions)
-        get_ks_usage()
         get_vpc_usage()
-        get_gc_usage()
+
+        get_sdb_usage()
+        get_rds_usage()
+        get_dynamodb_usage(opts.regions)
+        get_elasticache_usage()
+        get_redshift_usage()
+
         get_s3_usage()
+        get_glacier_usage()
+        get_cloudfront_usage()
+
+        get_emr_usage()
+        get_ks_usage()
         get_ow_usage()
         get_iam_usage()
 
