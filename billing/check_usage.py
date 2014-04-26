@@ -165,79 +165,79 @@ def get_cloudfront_usage():
         .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
 
 
-def get_sdb_usage():
-    sdb = boto.connect_sdb()
+def get_sdb_usage(regions):
+    cs = connect_to_regions(boto.sdb, regions)
     print '{0} SimpleDB Domain(s)' \
-        .format(len(sdb.get_all_domains()))
+        .format(sum(len(c.get_all_domains()) for c in cs))
 
 
-def get_rds_usage():
-    rds = boto.connect_rds2()
-    ds = rds.describe_db_instances()['DescribeDBInstancesResponse'] \
-            ['DescribeDBInstancesResult'] \
-            ['DBInstances']
-    rs = rds.describe_reserved_db_instances() \
-            ['DescribeReservedDBInstancesResponse'] \
-            ['DescribeReservedDBInstancesResult'] \
-            ['ReservedDBInstances']
-    ss = rds.describe_db_snapshots()['DescribeDBSnapshotsResponse'] \
-            ['DescribeDBSnapshotsResult'] \
-            ['DBSnapshots']
+def get_rds_usage(regions):
+    cs = connect_to_regions(boto.rds2, regions)
     print '{0} RDS Instance(s)\n' \
         '{1} RDS Reserved Instance(s)\n' \
         '{2} RDS Snapshot(s)' \
-        .format(len(ds), len(rs), len(ss))
+        .format(sum(len(c.describe_db_instances() \
+                ['DescribeDBInstancesResponse'] \
+                ['DescribeDBInstancesResult'] \
+                ['DBInstances']) for c in cs),
+            sum(len(c.describe_reserved_db_instances() \
+                ['DescribeReservedDBInstancesResponse'] \
+                ['DescribeReservedDBInstancesResult'] \
+                ['ReservedDBInstances']) for c in cs),
+            sum(len(c.describe_db_snapshots() \
+                ['DescribeDBSnapshotsResponse'] \
+                ['DescribeDBSnapshotsResult'] \
+                ['DBSnapshots']) for c in cs))
 
 
 def get_dynamodb_usage(regions):
-    ts = []
-    for r in get_regions(boto.dynamodb2, regions):
-        ddb = boto.dynamodb2.connect_to_region(r.name)
-        ts.extend(ddb.list_tables()['TableNames'])
-    ms = sum(t.count() for t in ts)
-    print '{0} DynamoDB Table(s){1}' \
-        .format(len(ts), '[{0} Item(s)]'.format(ms) if 0 != ms else '')
+    cs = connect_to_regions(boto.dynamodb2, regions)
+    print '{0} DynamoDB Table(s)' \
+        .format(sum(len(c.list_tables()['TableNames']) for c in cs))
 
 
 def get_elasticache_usage(regions):
     cs = connect_to_regions(boto.elasticache, regions)
     print '{0} ElastiCache Cluster(s)' \
         .format(sum(len(c.describe_cache_clusters() \
-            ['DescribeCacheClustersResponse'] \
-            ['DescribeCacheClustersResult'] \
-            ['CacheClusters']) for c in cs))
+                ['DescribeCacheClustersResponse'] \
+                ['DescribeCacheClustersResult'] \
+                ['CacheClusters']) for c in cs))
 
 
-def get_redshift_usage():
-    rs = boto.connect_redshift()
-    cs = rs.describe_clusters()['DescribeClustersResponse'] \
-        ['DescribeClustersResult'] \
-        ['Clusters']
+def get_redshift_usage(regions):
+    cs = connect_to_regions(boto.redshift, regions)
     print '{0} Redshift Cluster(s)' \
-        .format(len(cs))
+        .format(sum(len(c.describe_clusters() \
+                ['DescribeClustersResponse'] \
+                ['DescribeClustersResult'] \
+                ['Clusters']) for c in cs))
 
 
-def get_emr_usage():
-    emr = boto.connect_emr()
-    cs = emr.list_clusters().clusters
+def get_emr_usage(regions):
+    cs = connect_to_regions(boto.emr, regions)
     print '{0} EMR Cluster(s)' \
-        .format(len(cs))
+        .format(sum(len(c.list_clusters().clusters) for c in cs))
 
 
-def get_kinesis_usage():
-    ks = boto.connect_kinesis()
+def get_kinesis_usage(regions):
+    cs = connect_to_regions(boto.kinesis, regions)
     print '{0} Kinesis Stream(s)' \
-        .format(len(ks.list_streams()['StreamNames']))
+        .format(sum(len(c.list_streams()['StreamNames']) for c in cs))
 
 
 def get_sns_usage(regions):
     cs = connect_to_regions(boto.sns, regions)
     print '{0} SNS Topic(s)\n' \
         '{1} SNS Subscription(s)' \
-        .format(sum(len(c.get_all_topics()['ListTopicsResponse'] \
-                ['ListTopicsResult']['Topics']) for c in cs),
-            sum(len(c.get_all_subscriptions()['ListSubscriptionsResponse'] \
-                ['ListSubscriptionsResult']['Subscriptions']) for c in cs))
+        .format(sum(len(c.get_all_topics() \
+                ['ListTopicsResponse'] \
+                ['ListTopicsResult'] \
+                ['Topics']) for c in cs),
+            sum(len(c.get_all_subscriptions() \
+                ['ListSubscriptionsResponse'] \
+                ['ListSubscriptionsResult'] \
+                ['Subscriptions']) for c in cs))
 
 
 def get_sqs_usage(regions):
@@ -248,12 +248,14 @@ def get_sqs_usage(regions):
 
 def get_iam_usage():
     iam = boto.connect_iam()
-    us = iam.get_all_users()['list_users_response'] \
-            ['list_users_result'] \
-            ['users']
-    gs = iam.get_all_groups()['list_groups_response'] \
-            ['list_groups_result'] \
-            ['groups']
+    us = iam.get_all_users() \
+        ['list_users_response'] \
+        ['list_users_result'] \
+        ['users']
+    gs = iam.get_all_groups() \
+        ['list_groups_response'] \
+        ['list_groups_result'] \
+        ['groups']
     print '{0} IAM User(s)\n' \
         '{1} IAM Group(s)' \
         .format(len(us), \
@@ -345,14 +347,14 @@ def main():
         get_glacier_usage()
         get_cloudfront_usage()
 
-        get_sdb_usage()
-        get_rds_usage()
+        get_sdb_usage(opts.regions)
+        get_rds_usage(opts.regions)
         get_dynamodb_usage(opts.regions)
         get_elasticache_usage(opts.regions)
-        get_redshift_usage()
+        get_redshift_usage(opts.regions)
 
-        get_emr_usage()
-        get_kinesis_usage()
+        get_emr_usage(opts.regions)
+        get_kinesis_usage(opts.regions)
 
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
