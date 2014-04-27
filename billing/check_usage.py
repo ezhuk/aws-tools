@@ -15,6 +15,7 @@ Usage:
 import boto.cloudfront
 import boto.dynamodb2
 import boto.ec2
+import boto.ec2.autoscale
 import boto.ec2.cloudwatch
 import boto.elasticache
 import boto.emr
@@ -61,60 +62,58 @@ def connect_to_regions(service, regions):
             if not (r.name.startswith('cn-') or r.name.startswith('us-gov-'))]
 
 
-def get_ec2_usage():
-    ec2 = boto.connect_ec2()
-    addrs = ec2.get_all_addresses()
-    un = sum(a.instance_id is None for a in addrs)
-    volumes = ec2.get_all_volumes()
-    vs = sum(v.size for v in volumes)
-    insts = list(itertools.chain.from_iterable([x.instances \
-        for x in ec2.get_all_reservations()]))
-    ic = len(insts)
-    ir = sum(i.state_code == 16 for i in insts)
-    print '{0} Elastic IP Addresse(s){1}\n' \
-        '{2} Instance(s){3}\n' \
-        '{4} Reserved Instance(s)\n' \
-        '{5} Spot Instance Request(s)\n' \
-        '{6} Volume(s){7}\n' \
-        '{8} Snapshot(s)\n' \
-        '{9} Image(s)\n' \
-        '{10} Security Group(s)\n' \
-        '{11} Key Pair(s)\n' \
-        '{12} Network Interface(s)\n' \
+def get_ec2_usage(regions):
+    cs = connect_to_regions(boto.ec2, regions)
+    instances = list(itertools.chain.from_iterable([x.instances \
+        for c in cs for x in c.get_all_reservations()]))
+    running = sum(16 == i.state_code for i in instances)
+    volumes = list(itertools.chain.from_iterable([c.get_all_volumes() \
+        for c in cs]))
+    size = sum(v.size for v in volumes)
+    addresses = list(itertools.chain.from_iterable([c.get_all_addresses() \
+        for c in cs]))
+    unassigned = sum(a.instance_id is None for a in addresses)
+    print '{0} EC2 Instance(s){1}\n' \
+        '{2} EC2 Reserved Instance(s)\n' \
+        '{3} EC2 Spot Instance Request(s)\n' \
+        '{4} EBS Volume(s){5}\n' \
+        '{6} EBS Snapshot(s)\n' \
+        '{7} Amazon Machine Image(s)\n' \
+        '{8} Network Interface(s)\n' \
+        '{9} Elastic IP Address(es){10}\n' \
+        '{11} Security Group(s)\n' \
+        '{12} Key Pair(s)\n' \
         '{13} Tag(s)' \
-        .format(len(addrs), ' [{0} unassigned]'.format(un) if 0 != un else '', \
-            ic, ' [{0} running]'.format(ir) if ic != 0 else '', \
-            len(ec2.get_all_reserved_instances()), \
-            len(ec2.get_all_spot_instance_requests()), \
-            len(volumes), ' [{0} GB]'.format(vs) if 0 != vs else '', \
-            len(ec2.get_all_snapshots(owner=['self'])), \
-            len(ec2.get_all_images(owners=['self'])), \
-            len(ec2.get_all_security_groups()), \
-            len(ec2.get_all_key_pairs()), \
-            len(ec2.get_all_network_interfaces()), \
-            len(ec2.get_all_tags()))
+        .format(len(instances), \
+            '[{0} running]'.format(running) if 0 != running else '', \
+            sum(len(c.get_all_reserved_instances()) for c in cs), \
+            sum(len(c.get_all_spot_instance_requests()) for c in cs), \
+            len(volumes), \
+            '[{0} GB]'.format(size) if 0 != size else '', \
+            sum(len(c.get_all_snapshots(owner=['self'])) for c in cs), \
+            sum(len(c.get_all_images(owners=['self'])) for c in cs), \
+            sum(len(c.get_all_network_interfaces()) for c in cs), \
+            len(addresses), \
+            '[{0} unassigned]'.format(unassigned) if 0 != unassigned else '', \
+            sum(len(c.get_all_security_groups()) for c in cs), \
+            sum(len(c.get_all_key_pairs()) for c in cs), \
+            sum(len(c.get_all_tags()) for c in cs))
 
 
-def get_as_usage():
-    autoscale = boto.connect_autoscale()
-    gs = len(autoscale.get_all_groups())
-    print '{0} Auto Scaling Group(s){1}\n' \
-        '{2} Launch Configuration(s)\n' \
-        '{3} Auto Scaling Policie(s)' \
-        .format(gs, ' [{0} instances]' \
-                .format(autoscale.get_all_autoscaling_instances()) \
-                if 0 != gs else '', \
-            len(autoscale.get_all_launch_configurations()), \
-            len(autoscale.get_all_policies()))
+def get_autoscale_usage(regions):
+    cs = connect_to_regions(boto.ec2.autoscale, regions)
+    print '{0} Auto Scaling Group(s)\n' \
+        '{1} Auto Scaling Launch Configuration(s)\n' \
+        '{2} Auto Scaling Policie(s)' \
+        .format(sum(len(c.get_all_groups()) for c in cs), \
+            sum(len(c.get_all_launch_configurations()) for c in cs), \
+            sum(len(c.get_all_policies()) for c in cs))
 
 
-def get_elb_usage():
-    elb = boto.connect_elb()
-    lbs = elb.get_all_load_balancers()
-    ins = sum(len(x.instances) for x in lbs)
-    print '{0} Elastic Load Balancer(s){1}' \
-        .format(len(lbs), ' [{0} instance(s)]'.format(ins) \
-            if 0 != ins else '')
+def get_elb_usage(regions):
+    cs = connect_to_regions(boto.ec2.elb, regions)
+    print '{0} Elastic Load Balancer(s)' \
+        .format(sum(len(c.get_all_load_balancers()) for c in cs))
 
 
 def get_vpc_usage():
@@ -193,7 +192,8 @@ def get_rds_usage(regions):
 def get_dynamodb_usage(regions):
     cs = connect_to_regions(boto.dynamodb2, regions)
     print '{0} DynamoDB Table(s)' \
-        .format(sum(len(c.list_tables()['TableNames']) for c in cs))
+        .format(sum(len(c.list_tables() \
+                ['TableNames']) for c in cs))
 
 
 def get_elasticache_usage(regions):
@@ -223,7 +223,8 @@ def get_emr_usage(regions):
 def get_kinesis_usage(regions):
     cs = connect_to_regions(boto.kinesis, regions)
     print '{0} Kinesis Stream(s)' \
-        .format(sum(len(c.list_streams()['StreamNames']) for c in cs))
+        .format(sum(len(c.list_streams() \
+                ['StreamNames']) for c in cs))
 
 
 def get_sns_usage(regions):
@@ -337,9 +338,9 @@ def main():
         return 1
 
     try:
-        get_ec2_usage()
-        get_as_usage()
-        get_elb_usage()
+        get_ec2_usage(opts.regions)
+        get_autoscale_usage(opts.regions)
+        get_elb_usage(opts.regions)
         get_vpc_usage()
         get_route53_usage()
 
