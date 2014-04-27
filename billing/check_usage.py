@@ -43,16 +43,6 @@ class Error(Exception):
     pass
 
 
-def get_regions(service, regions):
-    if regions is not None:
-        return [r for r in service.regions() \
-            if r.name in regions]
-    else:
-        return [r for r in service.regions() \
-            if not (r.name.startswith('cn-') or \
-                    r.name.startswith('us-gov-'))]
-
-
 def connect_to_regions(service, regions):
     if regions is not None:
         return [service.connect_to_region(r.name) for r in service.regions() \
@@ -116,20 +106,20 @@ def get_elb_usage(regions):
         .format(sum(len(c.get_all_load_balancers()) for c in cs))
 
 
-def get_vpc_usage():
-    vpc = boto.connect_vpc()
-    cgs = vpc.get_all_customer_gateways()
-    igs = vpc.get_all_internet_gateways()
-    print '{0} Virtual Private Cloud(s)\n' \
-        '{1} Customer Gateway(s)\n' \
+def get_vpc_usage(regions):
+    cs = connect_to_regions(boto.vpc, regions)
+    vpcs = list(itertools.chain.from_iterable([c.get_all_vpcs() for c in cs]))
+    print '{0} Virtual Private Cloud(s) [{1} default]\n' \
         '{2} Internet Gateway(s)\n' \
-        '{3} Subnet(s)\n' \
-        '{4} VPN Gateway(s)' \
-        .format(len(vpc.get_all_vpcs()), \
-            len(cgs), \
-            len(igs), \
-            len(vpc.get_all_subnets()), \
-            len(vpc.get_all_vpn_gateways()))
+        '{3} Customer Gateway(s)\n' \
+        '{4} VPN Gateway(s)\n' \
+        '{5} Subnet(s)' \
+        .format(len(vpcs), \
+            sum(v.is_default for v in vpcs), \
+            sum(len(c.get_all_internet_gateways()) for c in cs), \
+            sum(len(c.get_all_customer_gateways()) for c in cs), \
+            sum(len(c.get_all_vpn_gateways()) for c in cs), \
+            sum(len(c.get_all_subnets()) for c in cs))
 
 
 def get_route53_usage():
@@ -341,7 +331,7 @@ def main():
         get_ec2_usage(opts.regions)
         get_autoscale_usage(opts.regions)
         get_elb_usage(opts.regions)
-        get_vpc_usage()
+        get_vpc_usage(opts.regions)
         get_route53_usage()
 
         get_s3_usage()
