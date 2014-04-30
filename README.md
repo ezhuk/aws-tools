@@ -220,7 +220,23 @@ Example:
 ./configure_ssl_policy.py --load-balancer MyLoadBalancer
 ```
 
-### 5. Simple Notification Service
+### 5. Simple Storage Service
+
+#### compress_object.py
+
+Compresses one or more files stored on Amazon S3. The way it works is that the script
+downloads the specified object onto a local filesystem, compresses it using gzip and
+then uploads it back on S3. Note that a full path to an S3 object is required.
+
+```
+Usage:
+    compress_object.py <args>...
+
+Options:
+    -h, --help    Show this help message and exit
+```
+
+### 6. Simple Notification Service
 
 #### confirm_subscription.py
 
