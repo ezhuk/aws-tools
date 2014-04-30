@@ -13,12 +13,28 @@ Usage:
 """
 
 import boto.s3
+import gzip
 import optparse
+import os
 import sys
 
 
 class Error(Exception):
     pass
+
+
+def compress_file(name, out):
+    """Compresses an existing file..
+    """
+    with open(name, 'rb') as i, gzip.open(out, 'wb') as o:
+        o.writelines(i)
+
+
+def upload_file(bucket, key, name):
+    """Uploads an existing file to S3.
+    """
+    k = bucket.new_key(key)
+    k.set_contents_from_filename(name)
 
 
 def main():
@@ -32,7 +48,24 @@ def main():
     try:
         s3 = boto.connect_s3()
 
-        # TODO
+        for a in args:
+            if not a.startswith('s3://'):
+                raise Error('unsupported object path!')
+            parts = a[5:].split('/')
+            b = parts[0]
+            k = '/'.join(parts[1:]) if 1 < len(parts) else ''
+
+            bucket = s3.get_bucket(b)
+            key = bucket.get_key(k)
+            _, name = os.path.split(key.name)
+            key.get_contents_to_filename(name)
+
+            out = name + '.gz'
+            compress_file(name, out)
+            os.remove(name)
+
+            upload_file(bucket, key.name + '.gz', out)
+            os.remove(out)
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
