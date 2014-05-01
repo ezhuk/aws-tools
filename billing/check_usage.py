@@ -38,6 +38,8 @@ import re
 import sys
 import time
 
+from boto.ec2.cloudwatch import MetricAlarm
+
 
 class Error(Exception):
     pass
@@ -255,8 +257,12 @@ def get_iam_usage():
 
 def get_cloudwatch_usage(regions):
     cs = connect_to_regions(boto.ec2.cloudwatch, regions)
-    print '{0} CloudWatch Alarm(s)' \
-        .format(sum(len(c.describe_alarms()) for c in cs))
+    alarms = list(itertools.chain.from_iterable( \
+        [c.describe_alarms() for c in cs]))
+    triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
+    print '{0} CloudWatch Alarm(s){1}' \
+        .format(len(alarms), \
+            '[{0} triggered]'.format(triggered) if 0 != triggered else '')
 
 
 def get_opsworks_usage():
