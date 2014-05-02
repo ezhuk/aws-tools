@@ -235,8 +235,12 @@ def get_sns_usage(regions):
 
 def get_sqs_usage(regions):
     cs = connect_to_regions(boto.sqs, regions)
-    print '{0} SQS Queue(s)' \
-        .format(sum(len(c.get_all_queues()) for c in cs))
+    queues = list(itertools.chain.from_iterable( \
+        [c.get_all_queues() for c in cs]))
+    messages = sum(q.count() for q in queues)
+    print '{0} SQS Queue(s){1}' \
+        .format(len(queues), \
+            '[{0} message(s)]'.format(messages) if 0 != messages else '')
 
 
 def get_iam_usage(regions):
