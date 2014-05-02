@@ -239,20 +239,19 @@ def get_sqs_usage(regions):
         .format(sum(len(c.get_all_queues()) for c in cs))
 
 
-def get_iam_usage():
-    iam = boto.connect_iam()
-    us = iam.get_all_users() \
+def get_iam_usage(regions):
+    cs = connect_to_regions(boto.iam, regions)
+    users = list(itertools.chain.from_iterable([c.get_all_users() \
         ['list_users_response'] \
         ['list_users_result'] \
-        ['users']
-    gs = iam.get_all_groups() \
+        ['users'] for c in cs]))
+    groups = list(itertools.chain.from_iterable([c.get_all_groups() \
         ['list_groups_response'] \
         ['list_groups_result'] \
-        ['groups']
+        ['groups'] for c in cs]))
     print '{0} IAM User(s)\n' \
         '{1} IAM Group(s)' \
-        .format(len(us), \
-            len(gs))
+        .format(len(users), len(groups))
 
 
 def get_cloudwatch_usage(regions):
@@ -358,7 +357,7 @@ def main():
 
         get_cloudwatch_usage(opts.regions)
         get_opsworks_usage()
-        get_iam_usage()
+        get_iam_usage(opts.regions)
 
         get_aws_cost(opts.bucket, opts.period)
     except (Error, Exception), err:
