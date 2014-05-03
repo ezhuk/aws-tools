@@ -183,9 +183,13 @@ def get_rds_usage(regions):
 
 def get_dynamodb_usage(regions):
     cs = connect_to_regions(boto.dynamodb2, regions)
-    print '{0} DynamoDB Table(s)' \
-        .format(sum(len(c.list_tables() \
-                ['TableNames']) for c in cs))
+    tables = list(itertools.chain.from_iterable( \
+        [[boto.dynamodb2.table.Table(t)] for c in cs \
+            for t in c.list_tables()['TableNames']]))
+    items = sum(t.count() for t in tables)
+    print '{0} DynamoDB Table(s){1}' \
+        .format(len(tables), \
+            '[{0} item(s)]'.format(items) if 0 != items else '')
 
 
 def get_elasticache_usage(regions):
@@ -214,7 +218,7 @@ def get_emr_usage(regions):
     cs = connect_to_regions(boto.emr, regions)
     clusters = list(itertools.chain.from_iterable( \
         [[c.describe_cluster(s.id)] for c in cs \
-        for s in c.list_clusters().clusters]))
+            for s in c.list_clusters().clusters]))
     print '{0} EMR Cluster(s)' \
         .format(len(clusters))
 
