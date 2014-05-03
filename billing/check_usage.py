@@ -199,11 +199,13 @@ def get_elasticache_usage(regions):
 
 def get_redshift_usage(regions):
     cs = connect_to_regions(boto.redshift, regions)
+    clusters = list(itertools.chain.from_iterable( \
+        [c.describe_clusters() \
+            ['DescribeClustersResponse'] \
+            ['DescribeClustersResult'] \
+            ['Clusters'] for c in cs]))
     print '{0} Redshift Cluster(s)' \
-        .format(sum(len(c.describe_clusters() \
-                ['DescribeClustersResponse'] \
-                ['DescribeClustersResult'] \
-                ['Clusters']) for c in cs))
+        .format(len(clusters))
 
 
 def get_emr_usage(regions):
