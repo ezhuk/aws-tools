@@ -148,12 +148,13 @@ def get_glacier_usage():
 
 
 def get_cloudfront_usage():
-    cf = boto.connect_cloudfront()
-    ds = cf.get_all_distributions()
-    os = len(list(itertools.chain.from_iterable( \
-        [x.get_distribution().get_objects() for x in ds])))
+    c = boto.connect_cloudfront()
+    distrs = c.get_all_distributions()
+    objects = len(list(itertools.chain.from_iterable( \
+        [d.get_distribution().get_objects() for d in distrs])))
     print '{0} CloudFront Distribution(s){1}' \
-        .format(len(ds), ' [{0} object(s)]'.format(os) if 0 != os else '')
+        .format(len(distrs), \
+            '[{0} object(s)]'.format(objects) if 0 != objects else '')
 
 
 def get_sdb_usage(regions):
