@@ -104,13 +104,18 @@ def get_autoscale_usage(regions):
 
 def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
-    print '{0} Elastic Load Balancer(s)' \
-        .format(sum(len(c.get_all_load_balancers()) for c in cs))
+    balancers = list(itertools.chain.from_iterable( \
+        [c.get_all_load_balancers() for c in cs]))
+    instances = sum(b.instances for b in balancers)
+    print '{0} Elastic Load Balancer(s){1}' \
+        .format(len(balancers), \
+            '[{0} instance(s)]'.format(instances) if 0 != instances else '')
 
 
 def get_vpc_usage(regions):
     cs = connect_to_regions(boto.vpc, regions)
-    vpcs = list(itertools.chain.from_iterable([c.get_all_vpcs() for c in cs]))
+    vpcs = list(itertools.chain.from_iterable( \
+        [c.get_all_vpcs() for c in cs]))
     print '{0} Virtual Private Cloud(s) [{1} default]\n' \
         '{2} Internet Gateway(s)\n' \
         '{3} Customer Gateway(s)\n' \
