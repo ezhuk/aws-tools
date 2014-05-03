@@ -208,8 +208,11 @@ def get_redshift_usage(regions):
 
 def get_emr_usage(regions):
     cs = connect_to_regions(boto.emr, regions)
+    clusters = list(itertools.chain.from_iterable( \
+        [[c.describe_cluster(s.id)] for c in cs \
+        for s in c.list_clusters().clusters]))
     print '{0} EMR Cluster(s)' \
-        .format(sum(len(c.list_clusters().clusters) for c in cs))
+        .format(len(clusters))
 
 
 def get_kinesis_usage(regions):
