@@ -190,11 +190,13 @@ def get_dynamodb_usage(regions):
 
 def get_elasticache_usage(regions):
     cs = connect_to_regions(boto.elasticache, regions)
+    clusters = list(itertools.chain.from_iterable( \
+        [c.describe_cache_clusters() \
+            ['DescribeCacheClustersResponse'] \
+            ['DescribeCacheClustersResult'] \
+            ['CacheClusters'] for c in cs]))
     print '{0} ElastiCache Cluster(s)' \
-        .format(sum(len(c.describe_cache_clusters() \
-                ['DescribeCacheClustersResponse'] \
-                ['DescribeCacheClustersResult'] \
-                ['CacheClusters']) for c in cs))
+        .format(len(clusters))
 
 
 def get_redshift_usage(regions):
