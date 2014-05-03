@@ -141,10 +141,14 @@ def get_s3_usage():
         .format(len(buckets), res / float(1024 * 1024 * 1024))
 
 
-def get_glacier_usage():
-    gc = boto.connect_glacier()
-    print '{0} Glacier Vault(s)' \
-        .format(len(gc.list_vaults()))
+def get_glacier_usage(regions):
+    cs = connect_to_regions(boto.glacier, regions)
+    vaults = list(itertools.chain.from_iterable( \
+        [c.list_vaults() for c in cs]))
+    archives = sum(v.number_of_archives for v in vaults)
+    print '{0} Glacier Vault(s){1}' \
+        .format(len(vaults), \
+            '[{0} archive(s)]'.format(archives) if 0 != archives else '')
 
 
 def get_cloudfront_usage():
@@ -366,7 +370,7 @@ def main():
         get_route53_usage()
 
         get_s3_usage()
-        get_glacier_usage()
+        get_glacier_usage(opts.regions)
         get_cloudfront_usage()
 
         get_sdb_usage(opts.regions)
