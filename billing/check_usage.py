@@ -45,25 +45,36 @@ class Error(Exception):
     pass
 
 
+class InstanceState(object):
+    """Represents the state of an instance.
+    """
+    PENDING = 0
+    RUNNING = 16
+    SHUTTING_DOWN = 32
+    TERMINATED = 48
+    STOPPING = 64
+    STOPPED = 80
+
+
 def connect_to_regions(service, regions):
     if regions is not None:
         return [service.connect_to_region(r.name) for r in service.regions() \
             if r.name in regions]
     else:
         return [service.connect_to_region(r.name) for r in service.regions() \
-            if not (r.name.startswith('cn-') or r.name.startswith('us-gov-'))]
+            if not r.name.startswith(('us-gov-', 'cn-'))]
 
 
 def get_ec2_usage(regions):
     cs = connect_to_regions(boto.ec2, regions)
-    instances = list(itertools.chain.from_iterable([x.instances \
-        for c in cs for x in c.get_all_reservations()]))
-    running = sum(16 == i.state_code for i in instances)
-    volumes = list(itertools.chain.from_iterable([c.get_all_volumes() \
-        for c in cs]))
+    instances = list(itertools.chain.from_iterable( \
+        [x.instances for c in cs for x in c.get_all_reservations()]))
+    running = sum(InstanceState.RUNNING == i.state_code for i in instances)
+    volumes = list(itertools.chain.from_iterable( \
+        [c.get_all_volumes() for c in cs]))
     size = sum(v.size for v in volumes)
-    addresses = list(itertools.chain.from_iterable([c.get_all_addresses() \
-        for c in cs]))
+    addresses = list(itertools.chain.from_iterable( \
+        [c.get_all_addresses() for c in cs]))
     unassigned = sum(a.instance_id is None for a in addresses)
     print '{0} EC2 Instance(s){1}\n' \
         '{2} EC2 Reserved Instance(s)\n' \
