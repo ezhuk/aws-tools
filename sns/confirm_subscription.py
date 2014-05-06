@@ -29,6 +29,12 @@ class Error(Exception):
     pass
 
 
+class Defaults(object):
+    """Default settings.
+    """
+    PORT = 8080
+
+
 class Server(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """Use the ThreadingMixIn to handle requests in multiple threads.
     """
@@ -83,7 +89,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
-    parser.add_option('-p', '--port', dest='port', default=8080,
+    parser.add_option('-p', '--port', dest='port', default=Defaults.PORT,
         help='The port number to listen on. This option is not required and '
              'is set to 8080 by default.')
     parser.add_option('-s', '--ssl', dest='ssl', action='store_true',
