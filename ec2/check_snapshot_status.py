@@ -54,7 +54,6 @@ def main():
                 sys.stdout.write('\x1b[1A' * size)
 
             time.sleep(3)
-
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1

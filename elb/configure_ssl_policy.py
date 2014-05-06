@@ -23,11 +23,20 @@ class Error(Exception):
     pass
 
 
+class Defaults(object):
+    """Default settings.
+    """
+    PORT = 443
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-l', '--load-balancer', dest='lbs', action='append',
         help='A list of AWS load balancers to configure the policy on. '
              'This option is required.')
+    parser.add_option('-p', '--port', dest='port', default=Defaults.PORT,
+        help='The port number of an HTTPS listener. This option is not '
+             'required and is set to 443 by default.')
     (opts, args) = parser.parse_args()
 
     if len(args) != 0 or \
@@ -79,7 +88,7 @@ def main():
                 'SSLNegotiationPolicyType',
                 policy_attributes)
 
-            elb.set_lb_policies_of_listener(lb, 443, [policy])
+            elb.set_lb_policies_of_listener(lb, opts.port, [policy])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
