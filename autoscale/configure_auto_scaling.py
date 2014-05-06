@@ -28,15 +28,28 @@ class Error(Exception):
     pass
 
 
+class Defaults(object):
+    """Default settings.
+    """
+    IMAGE = 'ami-a43909e1'
+    TYPE = 't1.micro'
+    MIN_INSTANCES = 2
+    MAX_INSTANCES = 4
+    MIN_THRESHOLD = 40
+    MAX_THRESHOLD = 60
+    ADJUSTMENT = 1
+    PERIOD = 300
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-n', '--name', dest='name',
         help='The name of this configuration (e.g., TEST).')
-    parser.add_option('-i', '--image', dest='image', default='ami-a43909e1',
+    parser.add_option('-i', '--image', dest='image', default=Defaults.IMAGE,
         help='The Amazon  Machine  Image (AMI) ID that will be used to launch '
              'EC2 instances. The most recent Amazon Linux AMI 2013.09.2 (ami-'
              'a43909e1) is used by default.')
-    parser.add_option('-t', '--type', dest='type', default='t1.micro',
+    parser.add_option('-t', '--type', dest='type', default=Defaults.TYPE,
         help='The type of the Amazon EC2 instance. If not specified, micro '
              'instance (t1.micro) type will be used.')
     parser.add_option('-k', '--key', dest='key',
@@ -45,27 +58,30 @@ def main():
     parser.add_option('-g', '--group', dest='group',
         help='Security group that will be used when creating EC2 instances. '
              'This option is required.')
-    parser.add_option('-m', '--min', dest='min', default='2',
-        help='The minimum number of EC2 instances in the auto scaling group. '
-             'If not specified, 2 will be used.')
-    parser.add_option('-M', '--max', dest='max', default='4',
-        help='The maximum size of the auto scaling group. By default it is '
-             'set to 4.')
+    parser.add_option('-m', '--min', dest='min',
+        default=Defaults.MIN_INSTANCES, help='The minimum number of EC2 '
+        'instances in the auto scaling group. By default it is set to 2.')
+    parser.add_option('-M', '--max', dest='max',
+        default=Defaults.MAX_INSTANCES, help='The maximum size of the auto '
+        'scaling group. By default it is set to 4.')
     parser.add_option('-z', '--zone', dest='zones', action='append',
         help='The availability zone for the auto scaling group. This option '
              'is required.')
     parser.add_option('-l', '--load-balancer', dest='lbs', action='append',
         help='The name of an existing AWS load balancer to use, if any.')
-    parser.add_option('--min-threshold', dest='min_threshold', default='40',
-        help='The minimum CPU utilization threshold that triggers an alarm. '
-             'This option is not required and is set to 40% by default.')
-    parser.add_option('--max-threshold', dest='max_threshold', default='60',
-        help='The maximum CPU utilization threshold that triggers an alarm. '
-             'This option is not required and is set to 60% by default.')
-    parser.add_option('-a', '--adjustment', dest='adjustment', default='1',
+    parser.add_option('--min-threshold', dest='min_threshold',
+        default=Defaults.MIN_THRESHOLD, help='The minimum CPU utilization '
+        'threshold that triggers an alarm. This option is not required and '
+        'is set to 40% by default.')
+    parser.add_option('--max-threshold', dest='max_threshold',
+        default=Defaults.MAX_THRESHOLD, help='The maximum CPU utilization '
+        'threshold that triggers an alarm. This option is not required and '
+        'is set to 60% by default.')
+    parser.add_option('-a', '--adjustment', dest='adjustment',
+        default=Defaults.ADJUSTMENT,
         help='The number of EC2 instances by which to scale up or down. '
              'This is set to 1 by default.')
-    parser.add_option('-p', '--period', dest='period', default=300,
+    parser.add_option('-p', '--period', dest='period', default=Defaults.PERIOD,
         help='The evaluation period in seconds. This is optional and is set '
              'to 300 seconds by default.')
     (opts, args) = parser.parse_args()
