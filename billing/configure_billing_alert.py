@@ -26,6 +26,12 @@ class Error(Exception):
     pass
 
 
+class Defaults(object):
+    """Default settings.
+    """
+    PERIOD = 21600
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog <options>')
     parser.add_option('-e', '--email', dest='email',
@@ -36,7 +42,7 @@ def main():
     parser.add_option('-t', '--threshold', dest='threshold',
         help='The dollar amount of estimated monthly charges which, '
              'when exceeded, causes an alert to be triggered.')
-    parser.add_option('-p', '--period', dest='period', default=21600,
+    parser.add_option('-p', '--period', dest='period', default=Defaults.PREIOD,
         help='The period in seconds over which the estimated monthly '
              'charges statistic is applied.')
     (opts, args) = parser.parse_args()
@@ -51,10 +57,14 @@ def main():
         sns = boto.connect_sns()
 
         topic = sns.create_topic('BillingNotifications') \
-            ['CreateTopicResponse']['CreateTopicResult']['TopicArn']
+            ['CreateTopicResponse'] \
+            ['CreateTopicResult'] \
+            ['TopicArn']
 
         res = sns.subscribe(topic, 'email', opts.email) \
-            ['SubscribeResponse']['SubscribeResult']['SubscriptionArn']
+            ['SubscribeResponse'] \
+            ['SubscribeResult'] \
+            ['SubscriptionArn']
         if res == 'pending confirmation':
             raw_input('Please confirm subscription. Press [ENTER] when done...')
 
