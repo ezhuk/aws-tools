@@ -117,10 +117,9 @@ def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
     balancers = list(itertools.chain.from_iterable( \
         [c.get_all_load_balancers() for c in cs]))
-    instances = sum(b.instances for b in balancers)
-    print '{0} Elastic Load Balancer(s){1}' \
+    print '{0} Elastic Load Balancer(s) [{1} instance(s)]' \
         .format(len(balancers), \
-            '[{0} instance(s)]'.format(instances) if 0 != instances else '')
+            sum(b.instances for b in balancers))
 
 
 def get_vpc_usage(regions):
