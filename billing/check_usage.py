@@ -105,10 +105,14 @@ def get_ec2_usage(regions):
 
 def get_autoscale_usage(regions):
     cs = connect_to_regions(boto.ec2.autoscale, regions)
+    instances = list(itertools.chain.from_iterable( \
+        [c.get_all_autoscaling_instances() for c in cs]))
     print '{0} Auto Scaling Group(s)\n' \
-        '{1} Auto Scaling Launch Configuration(s)\n' \
-        '{2} Auto Scaling Policie(s)' \
+        '{1} Auto Scaling Instance(s)\n' \
+        '{2} Auto Scaling Launch Configuration(s)\n' \
+        '{3} Auto Scaling Policie(s)' \
         .format(sum(len(c.get_all_groups()) for c in cs), \
+            len(instances), \
             sum(len(c.get_all_launch_configurations()) for c in cs), \
             sum(len(c.get_all_policies()) for c in cs))
 
