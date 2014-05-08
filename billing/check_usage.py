@@ -88,16 +88,16 @@ def get_ec2_usage(regions):
         '{12} Key Pair(s)\n' \
         '{13} Tag(s)' \
         .format(len(instances), \
-            '[{0} running]'.format(running) if 0 != running else '', \
+            ' [{0} running]'.format(running) if 0 != running else '', \
             sum(len(c.get_all_reserved_instances()) for c in cs), \
             sum(len(c.get_all_spot_instance_requests()) for c in cs), \
             len(volumes), \
-            '[{0} GB]'.format(size) if 0 != size else '', \
+            ' [{0} GB]'.format(size) if 0 != size else '', \
             sum(len(c.get_all_snapshots(owner=['self'])) for c in cs), \
             sum(len(c.get_all_images(owners=['self'])) for c in cs), \
             sum(len(c.get_all_network_interfaces()) for c in cs), \
             len(addresses), \
-            '[{0} unassigned]'.format(unassigned) if 0 != unassigned else '', \
+            ' [{0} unassigned]'.format(unassigned) if 0 != unassigned else '', \
             sum(len(c.get_all_security_groups()) for c in cs), \
             sum(len(c.get_all_key_pairs()) for c in cs), \
             sum(len(c.get_all_tags()) for c in cs))
@@ -164,10 +164,13 @@ def get_glacier_usage(regions):
     cs = connect_to_regions(boto.glacier, regions)
     vaults = list(itertools.chain.from_iterable( \
         [c.list_vaults() for c in cs]))
-    archives = sum(v.number_of_archives for v in vaults)
-    print '{0} Glacier Vault(s){1}' \
+    size = sum(v.size_in_bytes for v in vaults)
+    print '{0} Glacier Vault(s)\n' \
+        '{1} Glacier Archive(s){2}' \
         .format(len(vaults), \
-            ' [{0} archive(s)]'.format(archives) if 0 != archives else '')
+            sum(v.number_of_archives for v in vaults), \
+            ' [{0} GB]'.format(size / float(1024 * 1024 * 1024)) \
+                if 0 != size else '')
 
 
 def get_cloudfront_usage():
