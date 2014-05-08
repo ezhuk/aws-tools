@@ -163,7 +163,7 @@ def get_glacier_usage(regions):
     archives = sum(v.number_of_archives for v in vaults)
     print '{0} Glacier Vault(s){1}' \
         .format(len(vaults), \
-            '[{0} archive(s)]'.format(archives) if 0 != archives else '')
+            ' [{0} archive(s)]'.format(archives) if 0 != archives else '')
 
 
 def get_cloudfront_usage():
@@ -173,7 +173,7 @@ def get_cloudfront_usage():
         [d.get_distribution().get_objects() for d in distrs])))
     print '{0} CloudFront Distribution(s){1}' \
         .format(len(distrs), \
-            '[{0} object(s)]'.format(objects) if 0 != objects else '')
+            ' [{0} object(s)]'.format(objects) if 0 != objects else '')
 
 
 def get_sdb_usage(regions):
@@ -184,13 +184,18 @@ def get_sdb_usage(regions):
 
 def get_rds_usage(regions):
     cs = connect_to_regions(boto.rds2, regions)
-    print '{0} RDS Instance(s)\n' \
-        '{1} RDS Reserved Instance(s)\n' \
-        '{2} RDS Snapshot(s)' \
-        .format(sum(len(c.describe_db_instances() \
-                ['DescribeDBInstancesResponse'] \
-                ['DescribeDBInstancesResult'] \
-                ['DBInstances']) for c in cs),
+    instances = list(itertools.chain.from_iterable( \
+        [c.describe_db_instances() \
+            ['DescribeDBInstancesResponse'] \
+            ['DescribeDBInstancesResult'] \
+            ['DBInstances'] for c in cs]))
+    available = sum(i['DBInstanceStatus'] == 'available' \
+        for i in instances)
+    print '{0} RDS Instance(s){1}\n' \
+        '{2} RDS Reserved Instance(s)\n' \
+        '{3} RDS Snapshot(s)' \
+        .format(len(instances), \
+            ' [{0} available]'.format(available) if 0 != available else '', \
             sum(len(c.describe_reserved_db_instances() \
                 ['DescribeReservedDBInstancesResponse'] \
                 ['DescribeReservedDBInstancesResult'] \
@@ -209,7 +214,7 @@ def get_dynamodb_usage(regions):
     items = sum(t.count() for t in tables)
     print '{0} DynamoDB Table(s){1}' \
         .format(len(tables), \
-            '[{0} item(s)]'.format(items) if 0 != items else '')
+            ' [{0} item(s)]'.format(items) if 0 != items else '')
 
 
 def get_elasticache_usage(regions):
@@ -252,7 +257,7 @@ def get_kinesis_usage(regions):
         ['Shards']) for c in cs for s in streams)
     print '{0} Kinesis Stream(s){1}' \
         .format(len(streams), \
-            '[{0} shard(s)]'.format(shards) if 0 != shards else '')
+            ' [{0} shard(s)]'.format(shards) if 0 != shards else '')
 
 
 def get_sns_usage(regions):
@@ -281,7 +286,7 @@ def get_sqs_usage(regions):
     messages = sum(q.count() for q in queues)
     print '{0} SQS Queue(s){1}' \
         .format(len(queues), \
-            '[{0} message(s)]'.format(messages) if 0 != messages else '')
+            ' [{0} message(s)]'.format(messages) if 0 != messages else '')
 
 
 def get_iam_usage(regions):
@@ -306,7 +311,7 @@ def get_cloudwatch_usage(regions):
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
     print '{0} CloudWatch Alarm(s){1}' \
         .format(len(alarms), \
-            '[{0} triggered]'.format(triggered) if 0 != triggered else '')
+            ' [{0} triggered]'.format(triggered) if 0 != triggered else '')
 
 
 def get_opsworks_usage():
