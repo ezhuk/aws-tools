@@ -28,6 +28,7 @@ import boto.rds2
 import boto.redshift
 import boto.route53
 import boto.s3
+import boto.ses
 import boto.sns
 import boto.sdb
 import boto.sqs
@@ -279,6 +280,17 @@ def get_cloudsearch_usage(regions):
         .format(len(domains))
 
 
+def get_ses_usage(regions):
+    cs = connect_to_regions(boto.ses, regions)
+    identities = list(itertools.chain.from_iterable( \
+        c.list_identities() \
+            ['ListIdentitiesResponse'] \
+            ['ListIdentitiesResult'] \
+            ['Identities'] for c in cs))
+    print '{0} SES Identitie(s)' \
+        .format(len(identities))
+
+
 def get_sns_usage(regions):
     cs = connect_to_regions(boto.sns, regions)
     print '{0} SNS Topic(s)\n' \
@@ -424,6 +436,7 @@ def main():
         get_kinesis_usage(opts.regions)
 
         get_cloudsearch_usage(opts.regions)
+        get_ses_usage(opts.regions)
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
 
