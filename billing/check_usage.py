@@ -285,8 +285,11 @@ def get_elastictranscoder_usage(regions):
     cs = connect_to_regions(boto.elastictranscoder, regions)
     pipelines = list(itertools.chain.from_iterable( \
         c.list_pipelines()['Pipelines'] for c in cs))
-    print '{0} Elastic Transcoder Pipeline(s)' \
-        .format(len(pipelines))
+    jobs = list(itertools.chain.from_iterable( \
+        c.list_jobs_by_status('Progressing')['Jobs'] for c in cs))
+    print '{0} Elastic Transcoder Pipeline(s)\n' \
+        '{1} Elastic Transcoder Job(s)' \
+        .format(len(pipelines), len(jobs))
 
 
 def get_ses_usage(regions):
