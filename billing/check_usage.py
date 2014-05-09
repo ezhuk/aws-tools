@@ -12,6 +12,7 @@ Usage:
     ./check_usage.py [options]
 """
 
+import boto.beanstalk
 import boto.cloudfront
 import boto.cloudsearch2
 import boto.cloudtrail
@@ -359,6 +360,17 @@ def get_iam_usage(regions):
         .format(len(users), len(groups))
 
 
+def get_beanstalk_usage(regions):
+    cs = connect_to_regions(boto.beanstalk, regions)
+    apps = list(itertools.chain.from_iterable( \
+        c.describe_applications() \
+            ['DescribeApplicationsResponse'] \
+            ['DescribeApplicationsResult'] \
+            ['Applications'] for c in cs))
+    print '{0} Elastic Beanstalk Application(s)' \
+        .format(len(apps))
+
+
 def get_cloudtrail_usage(regions):
     cs = connect_to_regions(boto.cloudtrail, regions)
     trails = list(itertools.chain.from_iterable( \
@@ -472,6 +484,7 @@ def main():
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
 
+        get_beanstalk_usage(opts.regions)
         get_cloudtrail_usage(opts.regions)
         get_cloudwatch_usage(opts.regions)
         get_opsworks_usage()
