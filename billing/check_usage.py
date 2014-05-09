@@ -14,6 +14,7 @@ Usage:
 
 import boto.cloudfront
 import boto.cloudsearch2
+import boto.cloudtrail
 import boto.datapipeline
 import boto.dynamodb2
 import boto.ec2
@@ -358,6 +359,14 @@ def get_iam_usage(regions):
         .format(len(users), len(groups))
 
 
+def get_cloudtrail_usage(regions):
+    cs = connect_to_regions(boto.cloudtrail, regions)
+    trails = list(itertools.chain.from_iterable( \
+        c.describe_trails()['trailList'] for c in cs))
+    print '{0} CloudTrail Trail(s)' \
+        .format(len(trails))
+
+
 def get_cloudwatch_usage(regions):
     cs = connect_to_regions(boto.ec2.cloudwatch, regions)
     alarms = list(itertools.chain.from_iterable( \
@@ -463,6 +472,7 @@ def main():
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
 
+        get_cloudtrail_usage(opts.regions)
         get_cloudwatch_usage(opts.regions)
         get_opsworks_usage()
         get_iam_usage(opts.regions)
