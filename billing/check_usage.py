@@ -14,6 +14,7 @@ Usage:
 
 import boto.cloudfront
 import boto.cloudsearch2
+import boto.datapipeline
 import boto.dynamodb2
 import boto.ec2
 import boto.ec2.autoscale
@@ -249,6 +250,14 @@ def get_redshift_usage(regions):
         .format(len(clusters))
 
 
+def get_datapipeline_usage(regions):
+    cs = connect_to_regions(boto.datapipeline, regions)
+    pipelines = list(itertools.chain.from_iterable( \
+        c.list_pipelines()['pipelineIdList'] for c in cs))
+    print '{0} Data Pipeline(s)' \
+        .format(len(pipelines))
+
+
 def get_emr_usage(regions):
     cs = connect_to_regions(boto.emr, regions)
     clusters = list(itertools.chain.from_iterable( \
@@ -444,6 +453,7 @@ def main():
         get_elasticache_usage(opts.regions)
         get_redshift_usage(opts.regions)
 
+        get_datapipeline_usage(opts.regions)
         get_emr_usage(opts.regions)
         get_kinesis_usage(opts.regions)
 
