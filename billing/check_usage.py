@@ -19,6 +19,7 @@ import boto.ec2
 import boto.ec2.autoscale
 import boto.ec2.cloudwatch
 import boto.elasticache
+import boto.elastictranscoder
 import boto.emr
 import boto.glacier
 import boto.iam
@@ -280,6 +281,14 @@ def get_cloudsearch_usage(regions):
         .format(len(domains))
 
 
+def get_elastictranscoder_usage(regions):
+    cs = connect_to_regions(boto.elastictranscoder, regions)
+    pipelines = list(itertools.chain.from_iterable( \
+        c.list_pipelines()['Pipelines'] for c in cs))
+    print '{0} Elastic Transcoder Pipeline(s)' \
+        .format(len(pipelines))
+
+
 def get_ses_usage(regions):
     cs = connect_to_regions(boto.ses, regions)
     identities = list(itertools.chain.from_iterable( \
@@ -436,6 +445,7 @@ def main():
         get_kinesis_usage(opts.regions)
 
         get_cloudsearch_usage(opts.regions)
+        get_elastictranscoder_usage(opts.regions)
         get_ses_usage(opts.regions)
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
