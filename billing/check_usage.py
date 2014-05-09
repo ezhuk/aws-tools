@@ -13,6 +13,7 @@ Usage:
 """
 
 import boto.cloudfront
+import boto.cloudsearch2
 import boto.dynamodb2
 import boto.ec2
 import boto.ec2.autoscale
@@ -267,6 +268,17 @@ def get_kinesis_usage(regions):
             ' [{0} shard(s)]'.format(shards) if 0 != shards else '')
 
 
+def get_cloudsearch_usage(regions):
+    cs = connect_to_regions(boto.cloudsearch2, regions)
+    domains = list(itertools.chain.from_iterable( \
+        c.list_domain_names() \
+            ['ListDomainNamesResponse'] \
+            ['ListDomainNamesResult'] \
+            ['DomainNames'] for c in cs))
+    print '{0} CloudSearch Domain(s)' \
+        .format(len(domains))
+
+
 def get_sns_usage(regions):
     cs = connect_to_regions(boto.sns, regions)
     print '{0} SNS Topic(s)\n' \
@@ -411,6 +423,7 @@ def main():
         get_emr_usage(opts.regions)
         get_kinesis_usage(opts.regions)
 
+        get_cloudsearch_usage(opts.regions)
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
 
