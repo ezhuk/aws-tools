@@ -136,8 +136,8 @@ def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
     balancers = list(itertools.chain.from_iterable( \
         c.get_all_load_balancers() for c in cs))
-    print '{0} Elastic Load Balancer(s) [{1} instance(s)]' \
-        .format(len(balancers), \
+    print '{0} [{1} instance(s)]' \
+        .format(print_items(len(balancers), 'Elastic Load Balancer'), \
             sum(b.instances for b in balancers))
 
 
@@ -145,12 +145,12 @@ def get_vpc_usage(regions):
     cs = connect_to_regions(boto.vpc, regions)
     vpcs = list(itertools.chain.from_iterable( \
         c.get_all_vpcs() for c in cs))
-    print '{0} Virtual Private Cloud(s) [{1} default]\n' \
+    print '{0} [{1} default]\n' \
         '{2} Internet Gateway(s)\n' \
         '{3} Customer Gateway(s)\n' \
         '{4} VPN Gateway(s)\n' \
         '{5} Subnet(s)' \
-        .format(len(vpcs), \
+        .format(print_items(len(vpcs), 'Virtual Private Cloud'), \
             sum(v.is_default for v in vpcs), \
             sum(len(c.get_all_internet_gateways()) for c in cs), \
             sum(len(c.get_all_customer_gateways()) for c in cs), \
@@ -302,9 +302,8 @@ def get_elastictranscoder_usage(regions):
         c.list_pipelines()['Pipelines'] for c in cs))
     jobs = list(itertools.chain.from_iterable( \
         c.list_jobs_by_status('Progressing')['Jobs'] for c in cs))
-    print '{0} Elastic Transcoder Pipeline(s)\n' \
-        '{1} Elastic Transcoder Job(s)' \
-        .format(len(pipelines), len(jobs))
+    print print_items(len(pipelines), 'Elastic Transcoder Pipeline')
+    print print_items(len(jobs), 'Elastic Transcoder Job')
 
 
 def get_ses_usage(regions):
@@ -359,9 +358,8 @@ def get_iam_usage(regions):
             ['list_groups_response'] \
             ['list_groups_result'] \
             ['groups'] for c in cs))
-    print '{0} IAM User(s)\n' \
-        '{1} IAM Group(s)' \
-        .format(len(users), len(groups))
+    print print_items(len(users), 'IAM User')
+    print print_items(len(groups), 'IAM Group')
 
 
 def get_beanstalk_usage(regions):
@@ -393,8 +391,8 @@ def get_cloudwatch_usage(regions):
 
 def get_opsworks_usage():
     ow = boto.connect_opsworks()
-    print '{0} OpsWorks Stack(s)' \
-        .format(len(ow.describe_stacks()['Stacks']))
+    stacks = len(ow.describe_stacks()['Stacks'])
+    print print_items(stacks, 'OpsWorks Stack')
 
 
 def get_aws_cost(bucket_name, time_period):
