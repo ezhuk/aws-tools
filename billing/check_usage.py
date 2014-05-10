@@ -200,8 +200,8 @@ def get_cloudfront_usage():
 
 def get_sdb_usage(regions):
     cs = connect_to_regions(boto.sdb, regions)
-    print '{0} SimpleDB Domain(s)' \
-        .format(sum(len(c.get_all_domains()) for c in cs))
+    domains = sum(len(c.get_all_domains()) for c in cs)
+    print print_items(domains, 'SimpleDB Domain')
 
 
 def get_rds_usage(regions):
@@ -246,8 +246,7 @@ def get_elasticache_usage(regions):
             ['DescribeCacheClustersResponse'] \
             ['DescribeCacheClustersResult'] \
             ['CacheClusters'] for c in cs))
-    print '{0} ElastiCache Cluster(s)' \
-        .format(len(clusters))
+    print print_items(len(clusters), 'ElastiCache Cluster')
 
 
 def get_redshift_usage(regions):
@@ -257,16 +256,14 @@ def get_redshift_usage(regions):
             ['DescribeClustersResponse'] \
             ['DescribeClustersResult'] \
             ['Clusters'] for c in cs))
-    print '{0} Redshift Cluster(s)' \
-        .format(len(clusters))
+    print print_items(len(clusters), 'Redshift Cluster')
 
 
 def get_datapipeline_usage(regions):
     cs = connect_to_regions(boto.datapipeline, regions)
     pipelines = list(itertools.chain.from_iterable( \
         c.list_pipelines()['pipelineIdList'] for c in cs))
-    print '{0} Data Pipeline(s)' \
-        .format(len(pipelines))
+    print print_items(len(pipelines), 'Data Pipeline')
 
 
 def get_emr_usage(regions):
@@ -274,8 +271,7 @@ def get_emr_usage(regions):
     clusters = list(itertools.chain.from_iterable( \
         [c.describe_cluster(s.id)] for c in cs \
             for s in c.list_clusters().clusters))
-    print '{0} EMR Cluster(s)' \
-        .format(len(clusters))
+    print print_items(len(clusters), 'EMR Cluster')
 
 
 def get_kinesis_usage(regions):
@@ -297,8 +293,7 @@ def get_cloudsearch_usage(regions):
             ['ListDomainNamesResponse'] \
             ['ListDomainNamesResult'] \
             ['DomainNames'] for c in cs))
-    print '{0} CloudSearch Domain(s)' \
-        .format(len(domains))
+    print print_items(len(domains), 'CloudSearch Domain')
 
 
 def get_elastictranscoder_usage(regions):
@@ -376,25 +371,23 @@ def get_beanstalk_usage(regions):
             ['DescribeApplicationsResponse'] \
             ['DescribeApplicationsResult'] \
             ['Applications'] for c in cs))
-    print '{0} Elastic Beanstalk Application(s)' \
-        .format(len(apps))
+    print print_items(len(apps), 'Elastic Beanstalk Application')
 
 
 def get_cloudtrail_usage(regions):
     cs = connect_to_regions(boto.cloudtrail, regions)
     trails = list(itertools.chain.from_iterable( \
         c.describe_trails()['trailList'] for c in cs))
-    print '{0} CloudTrail Trail(s)' \
-        .format(len(trails))
+    print print_items(len(trails), 'CloudTrail Trail')
 
 
 def get_cloudwatch_usage(regions):
     cs = connect_to_regions(boto.ec2.cloudwatch, regions)
-    alarms = list(itertools.chain.from_iterable( \
+    alarms = list(itertools.chain.from_iterable(
         c.describe_alarms() for c in cs))
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
-    print '{0} CloudWatch Alarm(s){1}' \
-        .format(len(alarms), \
+    print '{0}{1}' \
+        .format(print_items(len(alarms), 'CloudWatch Alarm'),
             ' [{0} triggered]'.format(triggered) if 0 != triggered else '')
 
 
