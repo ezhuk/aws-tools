@@ -64,10 +64,10 @@ class InstanceState(object):
 
 def connect_to_regions(service, regions):
     if regions is not None:
-        return [service.connect_to_region(r.name) for r in service.regions() \
+        return [service.connect_to_region(r.name) for r in service.regions()
             if r.name in regions]
     else:
-        return [service.connect_to_region(r.name) for r in service.regions() \
+        return [service.connect_to_region(r.name) for r in service.regions()
             if not r.name.startswith(('us-gov-', 'cn-'))]
 
 
@@ -75,19 +75,23 @@ def print_items(items, text):
     return '{0} {1}{2}'.format(items, text, 's'[1==items:])
 
 
+def flatten(x):
+    return itertools.chain.from_iterable(x)
+
+
 def get_ec2_usage(regions):
     cs = connect_to_regions(boto.ec2, regions)
-    instances = list(itertools.chain.from_iterable( \
-        x.instances for c in cs for x in c.get_all_reservations()))
-    running = sum(InstanceState.RUNNING == i.state_code for i in instances)
-    volumes = list(itertools.chain.from_iterable( \
-        c.get_all_volumes() for c in cs))
+    instances = list(flatten(x.instances for c in cs
+        for x in c.get_all_reservations()))
+    running = sum(InstanceState.RUNNING == i.state_code
+        for i in instances)
+
+    volumes = list(flatten(c.get_all_volumes() for c in cs))
     size = sum(v.size for v in volumes)
 
     snapshots = sum(len(c.get_all_snapshots(owner=['self'])) for c in cs)
     images = sum(len(c.get_all_images(owners=['self'])) for c in cs)
-    addresses = len(list(itertools.chain.from_iterable( \
-        c.get_all_addresses() for c in cs)))
+    addresses = len(list(flatten(c.get_all_addresses() for c in cs)))
     groups = sum(len(c.get_all_security_groups()) for c in cs)
     key_pairs = sum(len(c.get_all_key_pairs()) for c in cs)
     tags = sum(len(c.get_all_tags()) for c in cs)
@@ -103,58 +107,55 @@ def get_ec2_usage(regions):
         '{11}\n' \
         '{12}\n' \
         '{13}' \
-        .format(print_items(len(instances), 'EC2 Instance'), \
-            ' [{0} running]'.format(running) if 0 != running else '', \
-            sum(len(c.get_all_reserved_instances()) for c in cs), \
-            sum(len(c.get_all_spot_instance_requests()) for c in cs), \
-            len(volumes), \
-            ' [{0} GB]'.format(size) if 0 != size else '', \
-            print_items(snapshots, 'EBS Snapshot'), \
-            print_items(images, 'Amazon Machine Image'), \
-            sum(len(c.get_all_network_interfaces()) for c in cs), \
-            addresses, ['Address', 'Addresses'][1!=addresses], \
-            print_items(groups, 'Security Group'), \
-            print_items(key_pairs, 'Key Pair'), \
+        .format(print_items(len(instances), 'EC2 Instance'),
+            ' [{0} running]'.format(running) if 0 != running else '',
+            sum(len(c.get_all_reserved_instances()) for c in cs),
+            sum(len(c.get_all_spot_instance_requests()) for c in cs),
+            len(volumes),
+            ' [{0} GB]'.format(size) if 0 != size else '',
+            print_items(snapshots, 'EBS Snapshot'),
+            print_items(images, 'Amazon Machine Image'),
+            sum(len(c.get_all_network_interfaces()) for c in cs),
+            addresses, ['Address', 'Addresses'][1!=addresses],
+            print_items(groups, 'Security Group'),
+            print_items(key_pairs, 'Key Pair'),
             print_items(tags, 'Tag'))
 
 
 def get_autoscale_usage(regions):
     cs = connect_to_regions(boto.ec2.autoscale, regions)
-    instances = list(itertools.chain.from_iterable( \
-        c.get_all_autoscaling_instances() for c in cs))
+    instances = list(flatten(c.get_all_autoscaling_instances() for c in cs))
     print '{0} Auto Scaling Group(s)\n' \
         '{1} Auto Scaling Instance(s)\n' \
         '{2} Auto Scaling Launch Configuration(s)\n' \
         '{3} Auto Scaling Policie(s)' \
-        .format(sum(len(c.get_all_groups()) for c in cs), \
-            len(instances), \
-            sum(len(c.get_all_launch_configurations()) for c in cs), \
+        .format(sum(len(c.get_all_groups()) for c in cs),
+            len(instances),
+            sum(len(c.get_all_launch_configurations()) for c in cs),
             sum(len(c.get_all_policies()) for c in cs))
 
 
 def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
-    balancers = list(itertools.chain.from_iterable( \
-        c.get_all_load_balancers() for c in cs))
+    balancers = list(flatten(c.get_all_load_balancers() for c in cs))
     print '{0} [{1} instance(s)]' \
-        .format(print_items(len(balancers), 'Elastic Load Balancer'), \
+        .format(print_items(len(balancers), 'Elastic Load Balancer'),
             sum(b.instances for b in balancers))
 
 
 def get_vpc_usage(regions):
     cs = connect_to_regions(boto.vpc, regions)
-    vpcs = list(itertools.chain.from_iterable( \
-        c.get_all_vpcs() for c in cs))
+    vpcs = list(flatten(c.get_all_vpcs() for c in cs))
     print '{0} [{1} default]\n' \
         '{2} Internet Gateway(s)\n' \
         '{3} Customer Gateway(s)\n' \
         '{4} VPN Gateway(s)\n' \
         '{5} Subnet(s)' \
-        .format(print_items(len(vpcs), 'Virtual Private Cloud'), \
-            sum(v.is_default for v in vpcs), \
-            sum(len(c.get_all_internet_gateways()) for c in cs), \
-            sum(len(c.get_all_customer_gateways()) for c in cs), \
-            sum(len(c.get_all_vpn_gateways()) for c in cs), \
+        .format(print_items(len(vpcs), 'Virtual Private Cloud'),
+            sum(v.is_default for v in vpcs),
+            sum(len(c.get_all_internet_gateways()) for c in cs),
+            sum(len(c.get_all_customer_gateways()) for c in cs),
+            sum(len(c.get_all_vpn_gateways()) for c in cs),
             sum(len(c.get_all_subnets()) for c in cs))
 
 
@@ -169,32 +170,30 @@ def get_route53_usage():
 def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
-    res = sum(k.size for k in itertools.chain.from_iterable( \
-        b.get_all_keys() for b in buckets))
+    res = sum(k.size for k in flatten(b.get_all_keys() for b in buckets))
     print '{0} S3 Bucket(s) [{1:.3f} GB]' \
         .format(len(buckets), res / float(1024 * 1024 * 1024))
 
 
 def get_glacier_usage(regions):
     cs = connect_to_regions(boto.glacier, regions)
-    vaults = list(itertools.chain.from_iterable( \
-        c.list_vaults() for c in cs))
+    vaults = list(flatten(c.list_vaults() for c in cs))
     size = sum(v.size_in_bytes for v in vaults)
     print '{0} Glacier Vault(s)\n' \
         '{1} Glacier Archive(s){2}' \
-        .format(len(vaults), \
-            sum(v.number_of_archives for v in vaults), \
-            ' [{0} GB]'.format(size / float(1024 * 1024 * 1024)) \
+        .format(len(vaults),
+            sum(v.number_of_archives for v in vaults),
+            ' [{0} GB]'.format(size / float(1024 * 1024 * 1024))
                 if 0 != size else '')
 
 
 def get_cloudfront_usage():
     c = boto.connect_cloudfront()
     distrs = c.get_all_distributions()
-    objects = len(list(itertools.chain.from_iterable( \
-        d.get_distribution().get_objects() for d in distrs)))
+    objects = len(list(flatten(d.get_distribution().get_objects()
+        for d in distrs)))
     print '{0} CloudFront Distribution(s){1}' \
-        .format(len(distrs), \
+        .format(len(distrs),
             ' [{0} object(s)]'.format(objects) if 0 != objects else '')
 
 
@@ -206,113 +205,103 @@ def get_sdb_usage(regions):
 
 def get_rds_usage(regions):
     cs = connect_to_regions(boto.rds2, regions)
-    instances = list(itertools.chain.from_iterable( \
-        c.describe_db_instances() \
-            ['DescribeDBInstancesResponse'] \
-            ['DescribeDBInstancesResult'] \
-            ['DBInstances'] for c in cs))
-    available = sum(i['DBInstanceStatus'] == 'available' \
-        for i in instances)
+    instances = list(flatten(c.describe_db_instances()
+        ['DescribeDBInstancesResponse']
+        ['DescribeDBInstancesResult']
+        ['DBInstances'] for c in cs))
+    available = sum(i['DBInstanceStatus'] == 'available' for i in instances)
     print '{0} RDS Instance(s){1}\n' \
         '{2} RDS Reserved Instance(s)\n' \
         '{3} RDS Snapshot(s)' \
-        .format(len(instances), \
-            ' [{0} available]'.format(available) if 0 != available else '', \
-            sum(len(c.describe_reserved_db_instances() \
-                ['DescribeReservedDBInstancesResponse'] \
-                ['DescribeReservedDBInstancesResult'] \
+        .format(len(instances),
+            ' [{0} available]'.format(available) if 0 != available else '',
+            sum(len(c.describe_reserved_db_instances()
+                ['DescribeReservedDBInstancesResponse']
+                ['DescribeReservedDBInstancesResult']
                 ['ReservedDBInstances']) for c in cs),
-            sum(len(c.describe_db_snapshots() \
-                ['DescribeDBSnapshotsResponse'] \
-                ['DescribeDBSnapshotsResult'] \
+            sum(len(c.describe_db_snapshots()
+                ['DescribeDBSnapshotsResponse']
+                ['DescribeDBSnapshotsResult']
                 ['DBSnapshots']) for c in cs))
 
 
 def get_dynamodb_usage(regions):
     cs = connect_to_regions(boto.dynamodb2, regions)
-    tables = list(itertools.chain.from_iterable( \
-        [boto.dynamodb2.table.Table(t)] for c in cs \
+    tables = list(flatten([boto.dynamodb2.table.Table(t)] for c in cs
             for t in c.list_tables()['TableNames']))
     items = sum(t.count() for t in tables)
     print '{0} DynamoDB Table(s){1}' \
-        .format(len(tables), \
+        .format(len(tables),
             ' [{0} item(s)]'.format(items) if 0 != items else '')
 
 
 def get_elasticache_usage(regions):
     cs = connect_to_regions(boto.elasticache, regions)
-    clusters = list(itertools.chain.from_iterable( \
-        c.describe_cache_clusters() \
-            ['DescribeCacheClustersResponse'] \
-            ['DescribeCacheClustersResult'] \
-            ['CacheClusters'] for c in cs))
+    clusters = list(flatten(c.describe_cache_clusters()
+        ['DescribeCacheClustersResponse']
+        ['DescribeCacheClustersResult']
+        ['CacheClusters'] for c in cs))
     print print_items(len(clusters), 'ElastiCache Cluster')
 
 
 def get_redshift_usage(regions):
     cs = connect_to_regions(boto.redshift, regions)
-    clusters = list(itertools.chain.from_iterable( \
-        c.describe_clusters() \
-            ['DescribeClustersResponse'] \
-            ['DescribeClustersResult'] \
-            ['Clusters'] for c in cs))
+    clusters = list(flatten(c.describe_clusters()
+        ['DescribeClustersResponse']
+        ['DescribeClustersResult']
+        ['Clusters'] for c in cs))
     print print_items(len(clusters), 'Redshift Cluster')
 
 
 def get_datapipeline_usage(regions):
     cs = connect_to_regions(boto.datapipeline, regions)
-    pipelines = list(itertools.chain.from_iterable( \
-        c.list_pipelines()['pipelineIdList'] for c in cs))
+    pipelines = list(flatten(c.list_pipelines()['pipelineIdList']
+        for c in cs))
     print print_items(len(pipelines), 'Data Pipeline')
 
 
 def get_emr_usage(regions):
     cs = connect_to_regions(boto.emr, regions)
-    clusters = list(itertools.chain.from_iterable( \
-        [c.describe_cluster(s.id)] for c in cs \
-            for s in c.list_clusters().clusters))
+    clusters = list(flatten([c.describe_cluster(s.id)] for c in cs
+        for s in c.list_clusters().clusters))
     print print_items(len(clusters), 'EMR Cluster')
 
 
 def get_kinesis_usage(regions):
     cs = connect_to_regions(boto.kinesis, regions)
-    streams = list(itertools.chain.from_iterable( \
-        c.list_streams()['StreamNames'] for c in cs))
-    shards = sum(len(c.describe_stream(s) \
-        ['StreamDescription'] \
+    streams = list(flatten(c.list_streams()['StreamNames'] for c in cs))
+    shards = sum(len(c.describe_stream(s)
+        ['StreamDescription']
         ['Shards']) for c in cs for s in streams)
     print '{0} Kinesis Stream(s){1}' \
-        .format(len(streams), \
+        .format(len(streams),
             ' [{0} shard(s)]'.format(shards) if 0 != shards else '')
 
 
 def get_cloudsearch_usage(regions):
     cs = connect_to_regions(boto.cloudsearch2, regions)
-    domains = list(itertools.chain.from_iterable( \
-        c.list_domain_names() \
-            ['ListDomainNamesResponse'] \
-            ['ListDomainNamesResult'] \
-            ['DomainNames'] for c in cs))
+    domains = list(flatten(c.list_domain_names()
+        ['ListDomainNamesResponse']
+        ['ListDomainNamesResult']
+        ['DomainNames'] for c in cs))
     print print_items(len(domains), 'CloudSearch Domain')
 
 
 def get_elastictranscoder_usage(regions):
     cs = connect_to_regions(boto.elastictranscoder, regions)
-    pipelines = list(itertools.chain.from_iterable( \
-        c.list_pipelines()['Pipelines'] for c in cs))
-    jobs = list(itertools.chain.from_iterable( \
-        c.list_jobs_by_status('Progressing')['Jobs'] for c in cs))
+    pipelines = list(flatten(c.list_pipelines()['Pipelines'] for c in cs))
+    jobs = list(flatten(c.list_jobs_by_status('Progressing')
+        ['Jobs'] for c in cs))
     print print_items(len(pipelines), 'Elastic Transcoder Pipeline')
     print print_items(len(jobs), 'Elastic Transcoder Job')
 
 
 def get_ses_usage(regions):
     cs = connect_to_regions(boto.ses, regions)
-    identities = list(itertools.chain.from_iterable( \
-        c.list_identities() \
-            ['ListIdentitiesResponse'] \
-            ['ListIdentitiesResult'] \
-            ['Identities'] for c in cs))
+    identities = list(flatten(c.list_identities()
+        ['ListIdentitiesResponse']
+        ['ListIdentitiesResult']
+        ['Identities'] for c in cs))
     print '{0} SES Identitie(s)' \
         .format(len(identities))
 
@@ -322,67 +311,62 @@ def get_sns_usage(regions):
     print '{0} SNS Topic(s)\n' \
         '{1} SNS Subscription(s)\n' \
         '{2} SNS Platform Application(s)' \
-        .format(sum(len(c.get_all_topics() \
-                ['ListTopicsResponse'] \
-                ['ListTopicsResult'] \
+        .format(sum(len(c.get_all_topics()
+                ['ListTopicsResponse']
+                ['ListTopicsResult']
                 ['Topics']) for c in cs),
-            sum(len(c.get_all_subscriptions() \
-                ['ListSubscriptionsResponse'] \
-                ['ListSubscriptionsResult'] \
-                ['Subscriptions']) for c in cs), \
-            sum(len(c.list_platform_applications() \
-                ['ListPlatformApplicationsResponse'] \
-                ['ListPlatformApplicationsResult'] \
+            sum(len(c.get_all_subscriptions()
+                ['ListSubscriptionsResponse']
+                ['ListSubscriptionsResult']
+                ['Subscriptions']) for c in cs),
+            sum(len(c.list_platform_applications()
+                ['ListPlatformApplicationsResponse']
+                ['ListPlatformApplicationsResult']
                 ['PlatformApplications']) for c in cs))
 
 
 def get_sqs_usage(regions):
     cs = connect_to_regions(boto.sqs, regions)
-    queues = list(itertools.chain.from_iterable( \
-        c.get_all_queues() for c in cs))
+    queues = list(flatten(c.get_all_queues() for c in cs))
     messages = sum(q.count() for q in queues)
     print '{0} SQS Queue(s){1}' \
-        .format(len(queues), \
+        .format(len(queues),
             ' [{0} message(s)]'.format(messages) if 0 != messages else '')
 
 
 def get_iam_usage(regions):
     cs = connect_to_regions(boto.iam, regions)
-    users = list(itertools.chain.from_iterable( \
-        c.get_all_users() \
-            ['list_users_response'] \
-            ['list_users_result'] \
-            ['users'] for c in cs))
-    groups = list(itertools.chain.from_iterable( \
-        c.get_all_groups() \
-            ['list_groups_response'] \
-            ['list_groups_result'] \
-            ['groups'] for c in cs))
+    users = list(flatten(c.get_all_users()
+        ['list_users_response']
+        ['list_users_result']
+        ['users'] for c in cs))
+    groups = list(flatten(c.get_all_groups()
+        ['list_groups_response']
+        ['list_groups_result']
+        ['groups'] for c in cs))
     print print_items(len(users), 'IAM User')
     print print_items(len(groups), 'IAM Group')
 
 
 def get_beanstalk_usage(regions):
     cs = connect_to_regions(boto.beanstalk, regions)
-    apps = list(itertools.chain.from_iterable( \
-        c.describe_applications() \
-            ['DescribeApplicationsResponse'] \
-            ['DescribeApplicationsResult'] \
-            ['Applications'] for c in cs))
+    apps = list(flatten(c.describe_applications()
+        ['DescribeApplicationsResponse']
+        ['DescribeApplicationsResult']
+        ['Applications'] for c in cs))
     print print_items(len(apps), 'Elastic Beanstalk Application')
 
 
 def get_cloudtrail_usage(regions):
     cs = connect_to_regions(boto.cloudtrail, regions)
-    trails = list(itertools.chain.from_iterable( \
-        c.describe_trails()['trailList'] for c in cs))
+    trails = list(flatten(c.describe_trails()
+        ['trailList'] for c in cs))
     print print_items(len(trails), 'CloudTrail Trail')
 
 
 def get_cloudwatch_usage(regions):
     cs = connect_to_regions(boto.ec2.cloudwatch, regions)
-    alarms = list(itertools.chain.from_iterable(
-        c.describe_alarms() for c in cs))
+    alarms = list(flatten(c.describe_alarms() for c in cs))
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
     print '{0}{1}' \
         .format(print_items(len(alarms), 'CloudWatch Alarm'),
@@ -391,8 +375,7 @@ def get_cloudwatch_usage(regions):
 
 def get_opsworks_usage():
     ow = boto.connect_opsworks()
-    stacks = len(ow.describe_stacks()['Stacks'])
-    print print_items(stacks, 'OpsWorks Stack')
+    print print_items(len(ow.describe_stacks()['Stacks']), 'OpsWorks Stack')
 
 
 def get_aws_cost(bucket_name, time_period):
@@ -428,8 +411,8 @@ def get_aws_cost(bucket_name, time_period):
                 else:
                     cost[code][1] += value
         if row[3] == 'StatementTotal':
-            total.extend([['Cost', float(row[24]), row[23]], \
-                ['Credit', float(row[25]), row[23]], \
+            total.extend([['Cost', float(row[24]), row[23]],
+                ['Credit', float(row[25]), row[23]],
                 ['Total', float(row[28]), row[23]]])
 
     print '---'
