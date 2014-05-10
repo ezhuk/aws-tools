@@ -71,8 +71,11 @@ def connect_to_regions(service, regions):
             if not r.name.startswith(('us-gov-', 'cn-'))]
 
 
-def print_items(items, text):
-    return '{0} {1}{2}'.format(items, text, 's'[1==items:])
+def print_items(items, labels):
+    if 1 == len(labels):
+        return '{0} {1}{2}'.format(items, labels[0], 's'[1==items:])
+    else:
+        return '{0} {1}'.format(items, labels[1!=items])
 
 
 def flatten(x):
@@ -99,47 +102,53 @@ def get_ec2_usage(regions):
     print '{0}{1}\n' \
         '{2} EC2 Reserved Instance(s)\n' \
         '{3} EC2 Spot Instance Request(s)\n' \
-        '{4} EBS Volume(s){5}\n' \
+        '{4}{5}\n' \
         '{6}\n' \
         '{7}\n' \
         '{8} Network Interface(s)\n' \
-        '{9} Elastic IP {10}\n' \
+        '{9}\n' \
+        '{10}\n' \
         '{11}\n' \
-        '{12}\n' \
-        '{13}' \
-        .format(print_items(len(instances), 'EC2 Instance'),
+        '{12}' \
+        .format(print_items(len(instances), ['EC2 Instance']),
             ' [{0} running]'.format(running) if 0 != running else '',
             sum(len(c.get_all_reserved_instances()) for c in cs),
             sum(len(c.get_all_spot_instance_requests()) for c in cs),
-            len(volumes),
+            print_items(len(volumes), ['EBS Volume']),
             ' [{0} GB]'.format(size) if 0 != size else '',
-            print_items(snapshots, 'EBS Snapshot'),
-            print_items(images, 'Amazon Machine Image'),
+            print_items(snapshots, ['EBS Snapshot']),
+            print_items(images, ['Amazon Machine Image']),
             sum(len(c.get_all_network_interfaces()) for c in cs),
-            addresses, ['Address', 'Addresses'][1!=addresses],
-            print_items(groups, 'Security Group'),
-            print_items(key_pairs, 'Key Pair'),
-            print_items(tags, 'Tag'))
+            print_items(addresses, ['Elastic IP Address',
+                'Elastic IP Addresses']),
+            print_items(groups, ['Security Group']),
+            print_items(key_pairs, ['Key Pair']),
+            print_items(tags, ['Tag']))
 
 
 def get_autoscale_usage(regions):
     cs = connect_to_regions(boto.ec2.autoscale, regions)
-    instances = list(flatten(c.get_all_autoscaling_instances() for c in cs))
-    print '{0} Auto Scaling Group(s)\n' \
-        '{1} Auto Scaling Instance(s)\n' \
-        '{2} Auto Scaling Launch Configuration(s)\n' \
-        '{3} Auto Scaling Policie(s)' \
-        .format(sum(len(c.get_all_groups()) for c in cs),
-            len(instances),
-            sum(len(c.get_all_launch_configurations()) for c in cs),
-            sum(len(c.get_all_policies()) for c in cs))
+    groups = sum(len(c.get_all_groups()) for c in cs)
+    instances = len(list(flatten(c.get_all_autoscaling_instances()
+        for c in cs)))
+    configs = sum(len(c.get_all_launch_configurations()) for c in cs)
+    policies = sum(len(c.get_all_policies()) for c in cs)
+    print '{0}\n' \
+        '{1}\n' \
+        '{2}\n' \
+        '{3}' \
+        .format(print_items(groups, ['Auto Scaling Group']),
+            print_items(instances, ['Auto Scaling Instance']),
+            print_items(configs, ['Auto Scaling Launch Configuration']),
+            print_items(policies, ['Auto Scaling Policy',
+                'Auto Scaling Policies']))
 
 
 def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
     balancers = list(flatten(c.get_all_load_balancers() for c in cs))
     print '{0} [{1} instance(s)]' \
-        .format(print_items(len(balancers), 'Elastic Load Balancer'),
+        .format(print_items(len(balancers), ['Elastic Load Balancer']),
             sum(b.instances for b in balancers))
 
 
@@ -151,7 +160,7 @@ def get_vpc_usage(regions):
         '{3} Customer Gateway(s)\n' \
         '{4} VPN Gateway(s)\n' \
         '{5} Subnet(s)' \
-        .format(print_items(len(vpcs), 'Virtual Private Cloud'),
+        .format(print_items(len(vpcs), ['Virtual Private Cloud']),
             sum(v.is_default for v in vpcs),
             sum(len(c.get_all_internet_gateways()) for c in cs),
             sum(len(c.get_all_customer_gateways()) for c in cs),
@@ -200,7 +209,7 @@ def get_cloudfront_usage():
 def get_sdb_usage(regions):
     cs = connect_to_regions(boto.sdb, regions)
     domains = sum(len(c.get_all_domains()) for c in cs)
-    print print_items(domains, 'SimpleDB Domain')
+    print print_items(domains, ['SimpleDB Domain'])
 
 
 def get_rds_usage(regions):
@@ -241,7 +250,7 @@ def get_elasticache_usage(regions):
         ['DescribeCacheClustersResponse']
         ['DescribeCacheClustersResult']
         ['CacheClusters'] for c in cs))
-    print print_items(len(clusters), 'ElastiCache Cluster')
+    print print_items(len(clusters), ['ElastiCache Cluster'])
 
 
 def get_redshift_usage(regions):
@@ -250,21 +259,21 @@ def get_redshift_usage(regions):
         ['DescribeClustersResponse']
         ['DescribeClustersResult']
         ['Clusters'] for c in cs))
-    print print_items(len(clusters), 'Redshift Cluster')
+    print print_items(len(clusters), ['Redshift Cluster'])
 
 
 def get_datapipeline_usage(regions):
     cs = connect_to_regions(boto.datapipeline, regions)
     pipelines = list(flatten(c.list_pipelines()['pipelineIdList']
         for c in cs))
-    print print_items(len(pipelines), 'Data Pipeline')
+    print print_items(len(pipelines), ['Data Pipeline'])
 
 
 def get_emr_usage(regions):
     cs = connect_to_regions(boto.emr, regions)
     clusters = list(flatten([c.describe_cluster(s.id)] for c in cs
         for s in c.list_clusters().clusters))
-    print print_items(len(clusters), 'EMR Cluster')
+    print print_items(len(clusters), ['EMR Cluster'])
 
 
 def get_kinesis_usage(regions):
@@ -284,7 +293,7 @@ def get_cloudsearch_usage(regions):
         ['ListDomainNamesResponse']
         ['ListDomainNamesResult']
         ['DomainNames'] for c in cs))
-    print print_items(len(domains), 'CloudSearch Domain')
+    print print_items(len(domains), ['CloudSearch Domain'])
 
 
 def get_elastictranscoder_usage(regions):
@@ -292,8 +301,8 @@ def get_elastictranscoder_usage(regions):
     pipelines = list(flatten(c.list_pipelines()['Pipelines'] for c in cs))
     jobs = list(flatten(c.list_jobs_by_status('Progressing')
         ['Jobs'] for c in cs))
-    print print_items(len(pipelines), 'Elastic Transcoder Pipeline')
-    print print_items(len(jobs), 'Elastic Transcoder Job')
+    print print_items(len(pipelines), ['Elastic Transcoder Pipeline'])
+    print print_items(len(jobs), ['Elastic Transcoder Job'])
 
 
 def get_ses_usage(regions):
@@ -344,8 +353,8 @@ def get_iam_usage(regions):
         ['list_groups_response']
         ['list_groups_result']
         ['groups'] for c in cs))
-    print print_items(len(users), 'IAM User')
-    print print_items(len(groups), 'IAM Group')
+    print print_items(len(users), ['IAM User'])
+    print print_items(len(groups), ['IAM Group'])
 
 
 def get_beanstalk_usage(regions):
@@ -354,14 +363,14 @@ def get_beanstalk_usage(regions):
         ['DescribeApplicationsResponse']
         ['DescribeApplicationsResult']
         ['Applications'] for c in cs))
-    print print_items(len(apps), 'Elastic Beanstalk Application')
+    print print_items(len(apps), ['Elastic Beanstalk Application'])
 
 
 def get_cloudtrail_usage(regions):
     cs = connect_to_regions(boto.cloudtrail, regions)
     trails = list(flatten(c.describe_trails()
         ['trailList'] for c in cs))
-    print print_items(len(trails), 'CloudTrail Trail')
+    print print_items(len(trails), ['CloudTrail Trail'])
 
 
 def get_cloudwatch_usage(regions):
@@ -369,13 +378,13 @@ def get_cloudwatch_usage(regions):
     alarms = list(flatten(c.describe_alarms() for c in cs))
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
     print '{0}{1}' \
-        .format(print_items(len(alarms), 'CloudWatch Alarm'),
+        .format(print_items(len(alarms), ['CloudWatch Alarm']),
             ' [{0} triggered]'.format(triggered) if 0 != triggered else '')
 
 
 def get_opsworks_usage():
     ow = boto.connect_opsworks()
-    print print_items(len(ow.describe_stacks()['Stacks']), 'OpsWorks Stack')
+    print print_items(len(ow.describe_stacks()['Stacks']), ['OpsWorks Stack'])
 
 
 def get_aws_cost(bucket_name, time_period):
