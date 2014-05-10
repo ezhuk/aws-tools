@@ -71,6 +71,10 @@ def connect_to_regions(service, regions):
             if not r.name.startswith(('us-gov-', 'cn-'))]
 
 
+def print_items(items, text):
+    return '{0} {1}{2}'.format(items, text, 's'[1==items:])
+
+
 def get_ec2_usage(regions):
     cs = connect_to_regions(boto.ec2, regions)
     instances = list(itertools.chain.from_iterable( \
@@ -79,34 +83,39 @@ def get_ec2_usage(regions):
     volumes = list(itertools.chain.from_iterable( \
         c.get_all_volumes() for c in cs))
     size = sum(v.size for v in volumes)
-    addresses = list(itertools.chain.from_iterable( \
-        c.get_all_addresses() for c in cs))
-    unassigned = sum(a.instance_id is None for a in addresses)
-    print '{0} EC2 Instance(s){1}\n' \
+
+    snapshots = sum(len(c.get_all_snapshots(owner=['self'])) for c in cs)
+    images = sum(len(c.get_all_images(owners=['self'])) for c in cs)
+    addresses = len(list(itertools.chain.from_iterable( \
+        c.get_all_addresses() for c in cs)))
+    groups = sum(len(c.get_all_security_groups()) for c in cs)
+    key_pairs = sum(len(c.get_all_key_pairs()) for c in cs)
+    tags = sum(len(c.get_all_tags()) for c in cs)
+
+    print '{0}{1}\n' \
         '{2} EC2 Reserved Instance(s)\n' \
         '{3} EC2 Spot Instance Request(s)\n' \
         '{4} EBS Volume(s){5}\n' \
-        '{6} EBS Snapshot(s)\n' \
-        '{7} Amazon Machine Image(s)\n' \
+        '{6}\n' \
+        '{7}\n' \
         '{8} Network Interface(s)\n' \
-        '{9} Elastic IP Address(es){10}\n' \
-        '{11} Security Group(s)\n' \
-        '{12} Key Pair(s)\n' \
-        '{13} Tag(s)' \
-        .format(len(instances), \
+        '{9} Elastic IP {10}\n' \
+        '{11}\n' \
+        '{12}\n' \
+        '{13}' \
+        .format(print_items(len(instances), 'EC2 Instance'), \
             ' [{0} running]'.format(running) if 0 != running else '', \
             sum(len(c.get_all_reserved_instances()) for c in cs), \
             sum(len(c.get_all_spot_instance_requests()) for c in cs), \
             len(volumes), \
             ' [{0} GB]'.format(size) if 0 != size else '', \
-            sum(len(c.get_all_snapshots(owner=['self'])) for c in cs), \
-            sum(len(c.get_all_images(owners=['self'])) for c in cs), \
+            print_items(snapshots, 'EBS Snapshot'), \
+            print_items(images, 'Amazon Machine Image'), \
             sum(len(c.get_all_network_interfaces()) for c in cs), \
-            len(addresses), \
-            ' [{0} unassigned]'.format(unassigned) if 0 != unassigned else '', \
-            sum(len(c.get_all_security_groups()) for c in cs), \
-            sum(len(c.get_all_key_pairs()) for c in cs), \
-            sum(len(c.get_all_tags()) for c in cs))
+            addresses, ['Address', 'Addresses'][1!=addresses], \
+            print_items(groups, 'Security Group'), \
+            print_items(key_pairs, 'Key Pair'), \
+            print_items(tags, 'Tag'))
 
 
 def get_autoscale_usage(regions):
