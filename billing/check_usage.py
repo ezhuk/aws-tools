@@ -172,8 +172,9 @@ def get_route53_usage():
     r53 = boto.connect_route53()
     zones = r53.get_zones()
     records = sum(len(z.get_records()) for z in zones)
-    print '{0} Route53 Hosted Zone(s) [{1} record(s)]' \
-        .format(len(zones), records)
+    print '{0} [{1}]' \
+        .format(print_items(len(zones), ['Route53 Hosted Zone']),
+            print_items(records, ['record']))
 
 
 def get_s3_usage():
