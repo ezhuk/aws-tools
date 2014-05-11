@@ -282,9 +282,10 @@ def get_kinesis_usage(regions):
     shards = sum(len(c.describe_stream(s)
         ['StreamDescription']
         ['Shards']) for c in cs for s in streams)
-    print '{0} Kinesis Stream(s){1}' \
-        .format(len(streams),
-            ' [{0} shard(s)]'.format(shards) if 0 != shards else '')
+    print '{0}{1}' \
+        .format(print_items(len(streams), ['Kinesis Stream']),
+            ' [{0}]'.format(print_items(shards, ['shard']))
+            if 0 != shards else '')
 
 
 def get_cloudsearch_usage(regions):
