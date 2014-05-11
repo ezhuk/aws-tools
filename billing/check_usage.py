@@ -338,9 +338,10 @@ def get_sqs_usage(regions):
     cs = connect_to_regions(boto.sqs, regions)
     queues = list(flatten(c.get_all_queues() for c in cs))
     messages = sum(q.count() for q in queues)
-    print '{0} SQS Queue(s){1}' \
-        .format(len(queues),
-            ' [{0} message(s)]'.format(messages) if 0 != messages else '')
+    print '{0}{1}' \
+        .format(print_items(len(queues), ['SQS Queue']),
+            ' [{0}]'.format(print_items(messages, ['message']))
+                if 0 != messages else '')
 
 
 def get_iam_usage(regions):
