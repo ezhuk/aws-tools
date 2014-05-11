@@ -201,9 +201,10 @@ def get_cloudfront_usage():
     distrs = c.get_all_distributions()
     objects = len(list(flatten(d.get_distribution().get_objects()
         for d in distrs)))
-    print '{0} CloudFront Distribution(s){1}' \
-        .format(len(distrs),
-            ' [{0} object(s)]'.format(objects) if 0 != objects else '')
+    print '{0}{1}' \
+        .format(print_items(len(distrs), ['CloudFront Distribution']),
+            ' [{0}]'.format(print_items(objects, ['object']))
+                if 0 != objects else '')
 
 
 def get_sdb_usage(regions):
