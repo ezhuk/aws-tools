@@ -307,12 +307,10 @@ def get_elastictranscoder_usage(regions):
 
 def get_ses_usage(regions):
     cs = connect_to_regions(boto.ses, regions)
-    identities = list(flatten(c.list_identities()
+    print print_items(len(list(flatten(c.list_identities()
         ['ListIdentitiesResponse']
         ['ListIdentitiesResult']
-        ['Identities'] for c in cs))
-    print '{0} SES Identitie(s)' \
-        .format(len(identities))
+        ['Identities'] for c in cs))), ['SES Identity', 'SES Identities'])
 
 
 def get_sns_usage(regions):
