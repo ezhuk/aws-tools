@@ -219,19 +219,17 @@ def get_rds_usage(regions):
         ['DescribeDBInstancesResult']
         ['DBInstances'] for c in cs))
     available = sum(i['DBInstanceStatus'] == 'available' for i in instances)
-    print '{0} RDS Instance(s){1}\n' \
-        '{2} RDS Reserved Instance(s)\n' \
-        '{3} RDS Snapshot(s)' \
-        .format(len(instances),
-            ' [{0} available]'.format(available) if 0 != available else '',
-            sum(len(c.describe_reserved_db_instances()
-                ['DescribeReservedDBInstancesResponse']
-                ['DescribeReservedDBInstancesResult']
-                ['ReservedDBInstances']) for c in cs),
-            sum(len(c.describe_db_snapshots()
-                ['DescribeDBSnapshotsResponse']
-                ['DescribeDBSnapshotsResult']
-                ['DBSnapshots']) for c in cs))
+    print '{0}{1}' \
+        .format(print_items(len(instances), ['RDS Instance']),
+            ' [{0} available]'.format(available) if 0 != available else '')
+    print print_items(sum(len(c.describe_reserved_db_instances()
+        ['DescribeReservedDBInstancesResponse']
+        ['DescribeReservedDBInstancesResult']
+        ['ReservedDBInstances']) for c in cs), ['RDS Reserved Instance'])
+    print print_items(sum(len(c.describe_db_snapshots()
+        ['DescribeDBSnapshotsResponse']
+        ['DescribeDBSnapshotsResult']
+        ['DBSnapshots']) for c in cs), ['RDS Snapshot'])
 
 
 def get_dynamodb_usage(regions):
