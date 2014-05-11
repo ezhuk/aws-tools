@@ -180,8 +180,9 @@ def get_s3_usage():
     s3 = boto.connect_s3()
     buckets = s3.get_all_buckets()
     res = sum(k.size for k in flatten(b.get_all_keys() for b in buckets))
-    print '{0} S3 Bucket(s) [{1:.3f} GB]' \
-        .format(len(buckets), res / float(1024 * 1024 * 1024))
+    print '{0} [{1:.3f} GB]' \
+        .format(print_items(len(buckets), ['S3 Bucket']),
+            res / float(1024 * 1024 * 1024))
 
 
 def get_glacier_usage(regions):
