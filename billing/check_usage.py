@@ -239,9 +239,10 @@ def get_dynamodb_usage(regions):
     tables = list(flatten([boto.dynamodb2.table.Table(t)] for c in cs
             for t in c.list_tables()['TableNames']))
     items = sum(t.count() for t in tables)
-    print '{0} DynamoDB Table(s){1}' \
-        .format(len(tables),
-            ' [{0} item(s)]'.format(items) if 0 != items else '')
+    print '{0}{1}' \
+        .format(print_items(len(tables), ['DynamoDB Table']),
+            ' [{0}]'.format(print_items(items, ['item']))
+            if 0 != items else '')
 
 
 def get_elasticache_usage(regions):
