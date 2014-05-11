@@ -188,10 +188,10 @@ def get_glacier_usage(regions):
     cs = connect_to_regions(boto.glacier, regions)
     vaults = list(flatten(c.list_vaults() for c in cs))
     size = sum(v.size_in_bytes for v in vaults)
-    print '{0} Glacier Vault(s)\n' \
-        '{1} Glacier Archive(s){2}' \
-        .format(len(vaults),
-            sum(v.number_of_archives for v in vaults),
+    print print_items(len(vaults), ['Glacier Vault'])
+    print '{0}{1}' \
+        .format(print_items(sum(v.number_of_archives for v in vaults),
+                ['Glacier Archive']),
             ' [{0} GB]'.format(size / float(1024 * 1024 * 1024))
                 if 0 != size else '')
 
