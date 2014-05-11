@@ -317,21 +317,18 @@ def get_ses_usage(regions):
 
 def get_sns_usage(regions):
     cs = connect_to_regions(boto.sns, regions)
-    print '{0} SNS Topic(s)\n' \
-        '{1} SNS Subscription(s)\n' \
-        '{2} SNS Platform Application(s)' \
-        .format(sum(len(c.get_all_topics()
-                ['ListTopicsResponse']
-                ['ListTopicsResult']
-                ['Topics']) for c in cs),
-            sum(len(c.get_all_subscriptions()
-                ['ListSubscriptionsResponse']
-                ['ListSubscriptionsResult']
-                ['Subscriptions']) for c in cs),
-            sum(len(c.list_platform_applications()
-                ['ListPlatformApplicationsResponse']
-                ['ListPlatformApplicationsResult']
-                ['PlatformApplications']) for c in cs))
+    print print_items(sum(len(c.get_all_topics()
+        ['ListTopicsResponse']
+        ['ListTopicsResult']
+        ['Topics']) for c in cs), ['SNS Topic'])
+    print print_items(sum(len(c.get_all_subscriptions()
+        ['ListSubscriptionsResponse']
+        ['ListSubscriptionsResult']
+        ['Subscriptions']) for c in cs), ['SNS Subscription'])
+    print print_items(sum(len(c.list_platform_applications()
+        ['ListPlatformApplicationsResponse']
+        ['ListPlatformApplicationsResult']
+        ['PlatformApplications']) for c in cs), ['SNS Platform Application'])
 
 
 def get_sqs_usage(regions):
