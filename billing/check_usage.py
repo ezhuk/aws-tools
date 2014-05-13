@@ -128,20 +128,14 @@ def get_ec2_usage(regions):
 
 def get_autoscale_usage(regions):
     cs = connect_to_regions(boto.ec2.autoscale, regions)
-    groups = sum(len(c.get_all_groups()) for c in cs)
-    instances = len(list(flatten(c.get_all_autoscaling_instances()
-        for c in cs)))
-    configs = sum(len(c.get_all_launch_configurations()) for c in cs)
-    policies = sum(len(c.get_all_policies()) for c in cs)
-    print '{0}\n' \
-        '{1}\n' \
-        '{2}\n' \
-        '{3}' \
-        .format(print_items(groups, ['Auto Scaling Group']),
-            print_items(instances, ['Auto Scaling Instance']),
-            print_items(configs, ['Auto Scaling Launch Configuration']),
-            print_items(policies, ['Auto Scaling Policy',
-                'Auto Scaling Policies']))
+    print print_items(sum(len(c.get_all_groups()) for c in cs),
+        ['Auto Scaling Group'])
+    print print_items(len(list(flatten(c.get_all_autoscaling_instances()
+        for c in cs))), ['Auto Scaling Instance'])
+    print print_items(sum(len(c.get_all_launch_configurations()) for c in cs),
+        ['Auto Scaling Launch Configuration'])
+    print print_items(sum(len(c.get_all_policies()) for c in cs),
+        ['Auto Scaling Policy', 'Auto Scaling Policies'])
 
 
 def get_elb_usage(regions):
