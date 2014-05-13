@@ -147,9 +147,9 @@ def get_autoscale_usage(regions):
 def get_elb_usage(regions):
     cs = connect_to_regions(boto.ec2.elb, regions)
     balancers = list(flatten(c.get_all_load_balancers() for c in cs))
-    print '{0} [{1} instance(s)]' \
+    print '{0} [{1}]' \
         .format(print_items(len(balancers), ['Elastic Load Balancer']),
-            sum(b.instances for b in balancers))
+            print_items(sum(b.instances for b in balancers), ['instance']))
 
 
 def get_vpc_usage(regions):
