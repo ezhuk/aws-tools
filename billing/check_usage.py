@@ -155,17 +155,16 @@ def get_elb_usage(regions):
 def get_vpc_usage(regions):
     cs = connect_to_regions(boto.vpc, regions)
     vpcs = list(flatten(c.get_all_vpcs() for c in cs))
-    print '{0} [{1} default]\n' \
-        '{2} Internet Gateway(s)\n' \
-        '{3} Customer Gateway(s)\n' \
-        '{4} VPN Gateway(s)\n' \
-        '{5} Subnet(s)' \
+    print '{0} [{1} default]' \
         .format(print_items(len(vpcs), ['Virtual Private Cloud']),
-            sum(v.is_default for v in vpcs),
-            sum(len(c.get_all_internet_gateways()) for c in cs),
-            sum(len(c.get_all_customer_gateways()) for c in cs),
-            sum(len(c.get_all_vpn_gateways()) for c in cs),
-            sum(len(c.get_all_subnets()) for c in cs))
+            sum(v.is_default for v in vpcs))
+    print print_items(sum(len(c.get_all_internet_gateways()) for c in cs),
+        ['Internet Gateway'])
+    print print_items(sum(len(c.get_all_customer_gateways()) for c in cs),
+        ['Customer Gateway'])
+    print print_items(sum(len(c.get_all_vpn_gateways()) for c in cs),
+        ['VPN Gateway'])
+    print print_items(sum(len(c.get_all_subnets()) for c in cs), ['Subnet'])
 
 
 def get_route53_usage():
