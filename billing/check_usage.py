@@ -159,13 +159,14 @@ def get_route53_usage(regions):
             if 0 != records else '')
 
 
-def get_s3_usage():
-    s3 = boto.connect_s3()
-    buckets = s3.get_all_buckets()
-    res = sum(k.size for k in flatten(b.get_all_keys() for b in buckets))
-    print '{0} [{1:.3f} GB]' \
-        .format(print_items(len(buckets), ['S3 Bucket']),
-            res / float(1024 * 1024 * 1024))
+def get_s3_usage(regions):
+    cs = connect_to_regions(boto.s3, regions)
+    buckets = dict((x.name, x) for c in cs for x in c.get_all_buckets())
+    size = sum(x.size for x in list(flatten(v.get_all_keys()
+        for k, v in buckets.iteritems())))
+    print '{0}{1}'.format(print_items(len(buckets), ['S3 Bucket']),
+        ' [{0:.3f} GB]'.format(size / float(1024 * 1024 * 1024))
+            if 0 != size else '')
 
 
 def get_glacier_usage(regions):
@@ -437,7 +438,7 @@ def main():
         get_vpc_usage(opts.regions)
         get_route53_usage(opts.regions)
 
-        get_s3_usage()
+        get_s3_usage(opts.regions)
         get_glacier_usage(opts.regions)
         get_cloudfront_usage()
 
