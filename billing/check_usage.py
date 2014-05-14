@@ -150,13 +150,13 @@ def get_vpc_usage(regions):
     print print_items(sum(len(c.get_all_subnets()) for c in cs), ['Subnet'])
 
 
-def get_route53_usage():
-    r53 = boto.connect_route53()
-    zones = r53.get_zones()
-    records = sum(len(z.get_records()) for z in zones)
-    print '{0} [{1}]' \
-        .format(print_items(len(zones), ['Route53 Hosted Zone']),
-            print_items(records, ['record']))
+def get_route53_usage(regions):
+    cs = connect_to_regions(boto.route53, regions)
+    zones = dict((x.id, x) for c in cs for x in c.get_zones())
+    records = sum(len(v.get_records()) for k, v in zones.iteritems())
+    print '{0}{1}'.format(print_items(len(zones), ['Route53 Hosted Zone']),
+        ' [{0}]'.format(print_items(records, ['record']))
+            if 0 != records else '')
 
 
 def get_s3_usage():
@@ -435,7 +435,7 @@ def main():
         get_autoscale_usage(opts.regions)
         get_elb_usage(opts.regions)
         get_vpc_usage(opts.regions)
-        get_route53_usage()
+        get_route53_usage(opts.regions)
 
         get_s3_usage()
         get_glacier_usage(opts.regions)
