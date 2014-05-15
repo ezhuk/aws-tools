@@ -125,6 +125,8 @@ def get_autoscale_usage(regions):
         ['Auto Scaling Launch Configuration'])
     print print_items(sum(len(c.get_all_policies()) for c in cs),
         ['Auto Scaling Policy', 'Auto Scaling Policies'])
+    print print_items(sum(len(c.get_all_tags()) for c in cs),
+        ['Auto Scaling Tag'])
 
 
 def get_elb_usage(regions):
