@@ -13,6 +13,7 @@ Usage:
 """
 
 import boto.beanstalk
+import boto.cloudformation
 import boto.cloudfront
 import boto.cloudsearch2
 import boto.cloudtrail
@@ -356,6 +357,12 @@ def get_beanstalk_usage(regions):
     print print_items(len(apps), ['Elastic Beanstalk Application'])
 
 
+def get_cloudformation_usage(regions):
+    cs = connect_to_regions(boto.cloudformation, regions)
+    stacks = list(flatten(c.describe_stacks() for c in cs))
+    print print_items(len(stacks), ['CloudFormation Stack'])
+
+
 def get_cloudtrail_usage(regions):
     cs = connect_to_regions(boto.cloudtrail, regions)
     trails = list(flatten(c.describe_trails()
@@ -467,6 +474,7 @@ def main():
         get_sqs_usage(opts.regions)
 
         get_beanstalk_usage(opts.regions)
+        get_cloudformation_usage(opts.regions)
         get_cloudtrail_usage(opts.regions)
         get_cloudwatch_usage(opts.regions)
         get_opsworks_usage()
