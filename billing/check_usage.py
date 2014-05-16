@@ -248,6 +248,12 @@ def get_redshift_usage(regions):
         ['Clusters'] for c in cs))
     print print_items(len(clusters), ['Redshift Cluster'])
 
+    snapshots = list(flatten(c.describe_cluster_snapshots()
+        ['DescribeClusterSnapshotsResponse']
+        ['DescribeClusterSnapshotsResult']
+        ['Snapshots'] for c in cs))
+    print print_items(len(snapshots), ['Redshift Snapshot'])
+
 
 def get_datapipeline_usage(regions):
     cs = connect_to_regions(boto.datapipeline, regions)
