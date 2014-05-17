@@ -392,9 +392,9 @@ def get_opsworks_usage():
     print print_items(len(ow.describe_stacks()['Stacks']), ['OpsWorks Stack'])
 
 
-def get_aws_cost(bucket_name, time_period):
-    s3 = boto.connect_s3()
-    bucket = s3.lookup(bucket_name)
+def get_aws_cost(bucket_name, time_period, regions):
+    cs = connect_to_regions(boto.s3, regions)
+    bucket = list(c.lookup(bucket_name) for c in cs)[0]
     if bucket is None:
         raise Error('could not find \'{0}\''.format(bucket_name))
 
@@ -489,7 +489,7 @@ def main():
         get_opsworks_usage()
         get_iam_usage(opts.regions)
 
-        get_aws_cost(opts.bucket, opts.period)
+        get_aws_cost(opts.bucket, opts.period, opts.regions)
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
