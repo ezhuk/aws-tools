@@ -37,6 +37,7 @@ import boto.ses
 import boto.sns
 import boto.sdb
 import boto.sqs
+import boto.swf
 import boto.vpc
 import csv
 import itertools
@@ -334,6 +335,13 @@ def get_sqs_usage(regions):
                 if 0 != messages else '')
 
 
+def get_swf_usage(regions):
+    cs = connect_to_regions(boto.swf, regions)
+    domains = list(flatten(c.list_domains('REGISTERED')
+        ['domainInfos'] for c in cs))
+    print print_items(len(domains), ['SWF Domain'])
+
+
 def get_iam_usage(regions):
     cs = connect_to_regions(boto.iam, regions)
     users = list(flatten(c.get_all_users()
@@ -472,6 +480,7 @@ def main():
         get_ses_usage(opts.regions)
         get_sns_usage(opts.regions)
         get_sqs_usage(opts.regions)
+        get_swf_usage(opts.regions)
 
         get_beanstalk_usage(opts.regions)
         get_cloudformation_usage(opts.regions)
