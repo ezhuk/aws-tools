@@ -62,7 +62,7 @@ def main():
 
         cloudwatch = boto.connect_cloudwatch()
 
-        cloudwatch.delete_alarms([opts.name + '-MA-CPU-HIGH', \
+        cloudwatch.delete_alarms([opts.name + '-MA-CPU-HIGH',
             opts.name + '-MA-CPU-LOW'])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))

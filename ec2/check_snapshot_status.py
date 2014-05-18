@@ -41,9 +41,9 @@ def main():
                 raise Error('could not find \'{0}\''.format(opts.snapshots))
 
             for snap in snapshots:
-                print '{0}: [{1}{2}] {3}'.format(snap.id, \
-                    '#' * 4 * (int(snap.progress.strip('%')) / 10), \
-                    ' ' * 4 * ((100 - int(snap.progress.strip('%'))) / 10), \
+                print '{0}: [{1}{2}] {3}'.format(snap.id,
+                    '#' * 4 * (int(snap.progress.strip('%')) / 10),
+                    ' ' * 4 * ((100 - int(snap.progress.strip('%'))) / 10),
                     snap.progress)
 
             if all(snap.status != 'pending' for snap in snapshots):

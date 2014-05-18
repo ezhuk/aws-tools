@@ -70,7 +70,7 @@ def main():
 
         cloudwatch = boto.connect_cloudwatch()
 
-        alarm = MetricAlarm(name=opts.name if opts.name is not None \
+        alarm = MetricAlarm(name=opts.name if opts.name is not None
                 else 'BillingAlarm-{0}'.format(opts.threshold),
             description='Estimated Monthly Charges',
             alarm_actions=[topic],
