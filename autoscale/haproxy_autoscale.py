@@ -27,8 +27,8 @@ def get_running_instances(groups):
     to the specified security groups.
     """
     ec2 = boto.connect_ec2()
-    return [i.private_dns_name for i in ec2.get_only_instances( \
-        filters={'instance.group-id': groups, \
+    return [i.private_dns_name for i in ec2.get_only_instances(
+        filters={'instance.group-id': groups,
                  'instance-state-name': 'running'})]
 
 
@@ -93,7 +93,7 @@ def main():
         for pp, item in enumerate(new):
             config.append('    server app{0} {1} check\n'.format(pp, item))
 
-        os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S', \
+        os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S',
             time.gmtime()))
         save_file(opts.config, config)
         restart_haproxy(opts.config)
