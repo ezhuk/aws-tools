@@ -9,8 +9,8 @@ This is a set of auxiliary tools for Amazon Web Services (AWS).
 #### configure_auto_scaling.py
 
 Configures AWS Auto Scaling to automatically manage system capacity based on
-an average CPU usage. It takes care of setting up new launch configuration
-and auto scaling group, scaling policies and metric alarms to automatically
+an average CPU usage. It takes care of setting up a new launch configuration
+and an auto scaling group, scaling policies and metric alarms to automatically
 provision or shutdown one or more EC2 instances if an average CPU utilization
 exceeds the maximum threshold or goes below the minimum threshold respectively.
 
@@ -32,10 +32,10 @@ exceeds the maximum threshold or goes below the minimum threshold respectively.
 
 #### haproxy_autoscale.py
 
-Keeps track of EC2 instances behind [HAProxy](http://haproxy.1wt.eu/) used as
-a load balancer that are associated with one or more security groups and updates
-its configuration if they change. This allows to automatically direct traffic
-to the currently running instances and remove the ones that are no longer used.
+Keeps track of EC2 instances behind [HAProxy](http://haproxy.1wt.eu/) that are
+associated with one or more security groups and updates its configuration if
+they change. This allows to automatically direct traffic to the currently
+running instances and remove the ones that are no longer used.
 
 This tool is supposed to be run periodically (e.g., every minute or so) and
 can be configured as a cron job as follows:
@@ -46,9 +46,9 @@ can be configured as a cron job as follows:
 
 #### shutdown_auto_scaling.py
 
-Gracefully shuts down previously created Auto Scaling configuration. This script
-also deletes scaling policies, metric alarms and launch configuration associated
-with the specified Auto Scaling group.
+Gracefully shuts down a previously created Auto Scaling configuration. This
+script also deletes scaling policies, metric alarms and launch configuration
+associated with the specified Auto Scaling group.
 
 ```bash
 ./shutdown_auto_scaling.py --name TEST
