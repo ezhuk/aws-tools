@@ -95,13 +95,13 @@ snapshots and displays progress bar(s) with percentage of completion.
 
 #### configure_ssl_policy.py
 
-Configures certain [recommended](https://wiki.mozilla.org/Security/Server_Side_TLS)
-server-side TLS settings for the default HTTPS listener on an Elastic Load
-Balancer (ELB). Even though ELB supports latest TLS versions and recommended
-ciphers they are not enabled by default for some reasons.
+Configures certain recommended server-side TLS settings for the default HTTPS
+listener on an Elastic Load Balancer (ELB). Even though ELB supports latest
+TLS versions and recommended ciphers they are not enabled by default for some
+reasons.
 
-This script enables the most recent and more secure TLS v1.2 and v1.1 versions, strong
-ciphers, including ECDHE to enable forward secrecy, and order preferences.
+This script enables the most recent and more secure TLS v1.2 and v1.1 versions,
+strong ciphers, including ECDHE to enable forward secrecy, and order preferences.
 
 ```bash
 ./configure_ssl_policy.py --load-balancer MyLoadBalancer
