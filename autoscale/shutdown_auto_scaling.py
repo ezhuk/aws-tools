@@ -23,6 +23,12 @@ class Error(Exception):
     pass
 
 
+class Defaults(object):
+    """Default settings.
+    """
+    TIMEOUT = 1
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog <options>')
     parser.add_option('-n', '--name', dest='name',
@@ -53,7 +59,7 @@ def main():
             group = autoscale.get_all_groups(names=[group_name])[0]
             if not group.instances:
                 break
-            time.sleep(1)
+            time.sleep(Defaults.TIMEOUT)
 
         autoscale.delete_policy(opts.name + '-SP-UP')
         autoscale.delete_policy(opts.name + '-SP-DOWN')
