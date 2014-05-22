@@ -29,6 +29,8 @@ class Error(Exception):
 class Defaults(object):
     """Default settings.
     """
+    METRIC = 'EstimatedCharges'
+    STATISTIC = 'Maximum'
     PERIOD = 21600
 
 
@@ -74,9 +76,9 @@ def main():
                 else 'BillingAlarm-{0}'.format(opts.threshold),
             description='Estimated Monthly Charges',
             alarm_actions=[topic],
-            metric='EstimatedCharges',
+            metric=Defaults.METRIC,
             namespace='AWS/Billing',
-            statistic='Maximum',
+            statistic=Defaults.STATISTIC,
             dimensions={'Currency':'USD'},
             period=opts.period,
             evaluation_periods=1,
