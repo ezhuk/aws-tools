@@ -64,7 +64,9 @@ class InstanceState(object):
     STOPPED = 80
 
 
-def connect_to_regions(service, regions):
+def connect(service, regions):
+    """Establishes connections to the specified service.
+    """
     if regions is not None:
         return [service.connect_to_region(r.name) for r in service.regions()
             if r.name in regions]
@@ -85,7 +87,7 @@ def flatten(x):
 
 
 def get_ec2_usage(regions):
-    cs = connect_to_regions(boto.ec2, regions)
+    cs = connect(boto.ec2, regions)
     instances = list(flatten(x.instances for c in cs
         for x in c.get_all_reservations()))
     running = sum(InstanceState.RUNNING == i.state_code
@@ -118,7 +120,7 @@ def get_ec2_usage(regions):
 
 
 def get_autoscale_usage(regions):
-    cs = connect_to_regions(boto.ec2.autoscale, regions)
+    cs = connect(boto.ec2.autoscale, regions)
     print print_items(sum(len(c.get_all_groups()) for c in cs),
         ['Auto Scaling Group'])
     print print_items(len(list(flatten(c.get_all_autoscaling_instances()
@@ -132,7 +134,7 @@ def get_autoscale_usage(regions):
 
 
 def get_elb_usage(regions):
-    cs = connect_to_regions(boto.ec2.elb, regions)
+    cs = connect(boto.ec2.elb, regions)
     balancers = list(flatten(c.get_all_load_balancers() for c in cs))
     print '{0} [{1}]' \
         .format(print_items(len(balancers), ['Elastic Load Balancer']),
@@ -140,7 +142,7 @@ def get_elb_usage(regions):
 
 
 def get_vpc_usage(regions):
-    cs = connect_to_regions(boto.vpc, regions)
+    cs = connect(boto.vpc, regions)
     vpcs = list(flatten(c.get_all_vpcs() for c in cs))
     print '{0} [{1} default]' \
         .format(print_items(len(vpcs), ['Virtual Private Cloud']),
@@ -155,7 +157,7 @@ def get_vpc_usage(regions):
 
 
 def get_route53_usage(regions):
-    cs = connect_to_regions(boto.route53, regions)
+    cs = connect(boto.route53, regions)
     zones = dict((x.id, x) for c in cs for x in c.get_zones())
     records = sum(len(v.get_records()) for k, v in zones.iteritems())
     print '{0}{1}'.format(print_items(len(zones), ['Route53 Hosted Zone']),
@@ -164,7 +166,7 @@ def get_route53_usage(regions):
 
 
 def get_s3_usage(regions):
-    cs = connect_to_regions(boto.s3, regions)
+    cs = connect(boto.s3, regions)
     buckets = dict((x.name, x) for c in cs for x in c.get_all_buckets())
     size = sum(x.size for x in list(flatten(v.get_all_keys()
         for k, v in buckets.iteritems())))
@@ -174,7 +176,7 @@ def get_s3_usage(regions):
 
 
 def get_glacier_usage(regions):
-    cs = connect_to_regions(boto.glacier, regions)
+    cs = connect(boto.glacier, regions)
     vaults = list(flatten(c.list_vaults() for c in cs))
     size = sum(v.size_in_bytes for v in vaults)
     print print_items(len(vaults), ['Glacier Vault'])
@@ -197,13 +199,13 @@ def get_cloudfront_usage():
 
 
 def get_sdb_usage(regions):
-    cs = connect_to_regions(boto.sdb, regions)
+    cs = connect(boto.sdb, regions)
     domains = sum(len(c.get_all_domains()) for c in cs)
     print print_items(domains, ['SimpleDB Domain'])
 
 
 def get_rds_usage(regions):
-    cs = connect_to_regions(boto.rds2, regions)
+    cs = connect(boto.rds2, regions)
     instances = list(flatten(c.describe_db_instances()
         ['DescribeDBInstancesResponse']
         ['DescribeDBInstancesResult']
@@ -223,7 +225,7 @@ def get_rds_usage(regions):
 
 
 def get_dynamodb_usage(regions):
-    cs = connect_to_regions(boto.dynamodb2, regions)
+    cs = connect(boto.dynamodb2, regions)
     tables = list(flatten([boto.dynamodb2.table.Table(t)] for c in cs
             for t in c.list_tables()['TableNames']))
     items = sum(t.count() for t in tables)
@@ -234,7 +236,7 @@ def get_dynamodb_usage(regions):
 
 
 def get_elasticache_usage(regions):
-    cs = connect_to_regions(boto.elasticache, regions)
+    cs = connect(boto.elasticache, regions)
     clusters = list(flatten(c.describe_cache_clusters()
         ['DescribeCacheClustersResponse']
         ['DescribeCacheClustersResult']
@@ -243,7 +245,7 @@ def get_elasticache_usage(regions):
 
 
 def get_redshift_usage(regions):
-    cs = connect_to_regions(boto.redshift, regions)
+    cs = connect(boto.redshift, regions)
     clusters = list(flatten(c.describe_clusters()
         ['DescribeClustersResponse']
         ['DescribeClustersResult']
@@ -258,21 +260,21 @@ def get_redshift_usage(regions):
 
 
 def get_datapipeline_usage(regions):
-    cs = connect_to_regions(boto.datapipeline, regions)
+    cs = connect(boto.datapipeline, regions)
     pipelines = list(flatten(c.list_pipelines()['pipelineIdList']
         for c in cs))
     print print_items(len(pipelines), ['Data Pipeline'])
 
 
 def get_emr_usage(regions):
-    cs = connect_to_regions(boto.emr, regions)
+    cs = connect(boto.emr, regions)
     clusters = list(flatten([c.describe_cluster(s.id)] for c in cs
         for s in c.list_clusters().clusters))
     print print_items(len(clusters), ['EMR Cluster'])
 
 
 def get_kinesis_usage(regions):
-    cs = connect_to_regions(boto.kinesis, regions)
+    cs = connect(boto.kinesis, regions)
     streams = list(flatten(c.list_streams()['StreamNames'] for c in cs))
     shards = sum(len(c.describe_stream(s)
         ['StreamDescription']
@@ -284,7 +286,7 @@ def get_kinesis_usage(regions):
 
 
 def get_cloudsearch_usage(regions):
-    cs = connect_to_regions(boto.cloudsearch2, regions)
+    cs = connect(boto.cloudsearch2, regions)
     domains = list(flatten(c.list_domain_names()
         ['ListDomainNamesResponse']
         ['ListDomainNamesResult']
@@ -293,7 +295,7 @@ def get_cloudsearch_usage(regions):
 
 
 def get_elastictranscoder_usage(regions):
-    cs = connect_to_regions(boto.elastictranscoder, regions)
+    cs = connect(boto.elastictranscoder, regions)
     pipelines = list(flatten(c.list_pipelines()['Pipelines'] for c in cs))
     jobs = list(flatten(c.list_jobs_by_status('Progressing')
         ['Jobs'] for c in cs))
@@ -302,7 +304,7 @@ def get_elastictranscoder_usage(regions):
 
 
 def get_ses_usage(regions):
-    cs = connect_to_regions(boto.ses, regions)
+    cs = connect(boto.ses, regions)
     print print_items(len(list(flatten(c.list_identities()
         ['ListIdentitiesResponse']
         ['ListIdentitiesResult']
@@ -310,7 +312,7 @@ def get_ses_usage(regions):
 
 
 def get_sns_usage(regions):
-    cs = connect_to_regions(boto.sns, regions)
+    cs = connect(boto.sns, regions)
     print print_items(sum(len(c.get_all_topics()
         ['ListTopicsResponse']
         ['ListTopicsResult']
@@ -326,7 +328,7 @@ def get_sns_usage(regions):
 
 
 def get_sqs_usage(regions):
-    cs = connect_to_regions(boto.sqs, regions)
+    cs = connect(boto.sqs, regions)
     queues = list(flatten(c.get_all_queues() for c in cs))
     messages = sum(q.count() for q in queues)
     print '{0}{1}' \
@@ -336,14 +338,14 @@ def get_sqs_usage(regions):
 
 
 def get_swf_usage(regions):
-    cs = connect_to_regions(boto.swf, regions)
+    cs = connect(boto.swf, regions)
     domains = list(flatten(c.list_domains('REGISTERED')
         ['domainInfos'] for c in cs))
     print print_items(len(domains), ['SWF Domain'])
 
 
 def get_iam_usage(regions):
-    cs = connect_to_regions(boto.iam, regions)
+    cs = connect(boto.iam, regions)
     users = list(flatten(c.get_all_users()
         ['list_users_response']
         ['list_users_result']
@@ -357,7 +359,7 @@ def get_iam_usage(regions):
 
 
 def get_beanstalk_usage(regions):
-    cs = connect_to_regions(boto.beanstalk, regions)
+    cs = connect(boto.beanstalk, regions)
     apps = list(flatten(c.describe_applications()
         ['DescribeApplicationsResponse']
         ['DescribeApplicationsResult']
@@ -366,20 +368,20 @@ def get_beanstalk_usage(regions):
 
 
 def get_cloudformation_usage(regions):
-    cs = connect_to_regions(boto.cloudformation, regions)
+    cs = connect(boto.cloudformation, regions)
     stacks = list(flatten(c.describe_stacks() for c in cs))
     print print_items(len(stacks), ['CloudFormation Stack'])
 
 
 def get_cloudtrail_usage(regions):
-    cs = connect_to_regions(boto.cloudtrail, regions)
+    cs = connect(boto.cloudtrail, regions)
     trails = list(flatten(c.describe_trails()
         ['trailList'] for c in cs))
     print print_items(len(trails), ['CloudTrail Trail'])
 
 
 def get_cloudwatch_usage(regions):
-    cs = connect_to_regions(boto.ec2.cloudwatch, regions)
+    cs = connect(boto.ec2.cloudwatch, regions)
     alarms = list(flatten(c.describe_alarms() for c in cs))
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
     print '{0}{1}' \
@@ -393,7 +395,7 @@ def get_opsworks_usage():
 
 
 def get_aws_cost(bucket_name, time_period, regions):
-    cs = connect_to_regions(boto.s3, regions)
+    cs = connect(boto.s3, regions)
     bucket = list(c.lookup(bucket_name) for c in cs)[0]
     if bucket is None:
         raise Error('could not find \'{0}\''.format(bucket_name))
