@@ -113,8 +113,10 @@ def get_ec2_usage(regions):
         ['Network Interface'])
     print print_items(len(list(flatten(c.get_all_addresses() for c in cs))),
         ['Elastic IP Address', 'Elastic IP Addresses'])
-    print print_items(sum(len(c.get_all_security_groups()) for c in cs),
-        ['Security Group'])
+
+    groups = dict((x.name, x) for c in cs for x in c.get_all_security_groups())
+    print print_items(len(groups), ['Security Group'])
+
     print print_items(sum(len(c.get_all_key_pairs()) for c in cs), ['Key Pair'])
     print print_items(sum(len(c.get_all_tags()) for c in cs), ['Tag'])
 
