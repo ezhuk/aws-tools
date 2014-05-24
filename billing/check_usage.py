@@ -272,7 +272,9 @@ def get_emr_usage(regions):
     cs = connect(boto.emr, regions)
     clusters = list(flatten([c.describe_cluster(s.id)] for c in cs
         for s in c.list_clusters().clusters))
-    print print_items(len(clusters), ['EMR Cluster'])
+    print '{0} [{1} terminated]' \
+        .format(print_items(len(clusters), ['EMR Cluster']),
+            sum('TERMINATED' == c.status.state for c in clusters))
 
 
 def get_kinesis_usage(regions):
