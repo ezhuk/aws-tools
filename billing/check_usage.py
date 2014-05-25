@@ -393,9 +393,9 @@ def get_cloudwatch_usage(regions):
             ' [{0} triggered]'.format(triggered) if 0 != triggered else '')
 
 
-def get_opsworks_usage():
-    ow = boto.connect_opsworks()
-    print print_items(len(ow.describe_stacks()['Stacks']), ['OpsWorks Stack'])
+def get_opsworks_usage(regions):
+    c = boto.connect_opsworks()
+    print print_items(len(c.describe_stacks()['Stacks']), ['OpsWorks Stack'])
 
 
 def get_aws_cost(bucket_name, time_period, regions):
@@ -492,7 +492,7 @@ def main():
         get_cloudformation_usage(opts.regions)
         get_cloudtrail_usage(opts.regions)
         get_cloudwatch_usage(opts.regions)
-        get_opsworks_usage()
+        get_opsworks_usage(opts.regions)
         get_iam_usage(opts.regions)
 
         get_aws_cost(opts.bucket, opts.period, opts.regions)
