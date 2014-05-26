@@ -398,7 +398,7 @@ def get_opsworks_usage(regions):
     print print_items(len(c.describe_stacks()['Stacks']), ['OpsWorks Stack'])
 
 
-def get_aws_cost(bucket_name, time_period, regions):
+def _get_billing_data(bucket_name, time_period, regions):
     cs = connect(boto.s3, regions)
     bucket = list(c.lookup(bucket_name) for c in cs)[0]
     if bucket is None:
@@ -409,13 +409,17 @@ def get_aws_cost(bucket_name, time_period, regions):
 
     data = ''
     for key in bucket.list():
-        p = re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
-            .format(period), key.name)
-        if p:
+        if re.match(r'(\w+)-aws-billing-csv-{0}.csv'.format(period), key.name):
             data = key.get_contents_as_string()
             break
     if not data:
         raise Error('could not find billing data for this month')
+
+    return data
+
+
+def get_aws_cost(bucket_name, time_period, regions):
+    data = _get_billing_data(bucket_name, time_period, regions)
 
     cost = dict()
     total = list()
