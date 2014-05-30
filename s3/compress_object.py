@@ -33,8 +33,8 @@ def compress_file(name, out):
 def upload_file(bucket, key, name):
     """Uploads an existing file to S3.
     """
-    k = bucket.new_key(key)
-    k.set_contents_from_filename(name)
+    with bucket.new_key(key) as k:
+        k.set_contents_from_filename(name)
 
 
 def main():
