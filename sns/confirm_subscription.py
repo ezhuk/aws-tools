@@ -35,6 +35,13 @@ class Defaults(object):
     PORT = 8080
 
 
+class MessageType(object):
+    """Represents SNS message type.
+    """
+    CONFIRMATION = 'SubscriptionConfirmation'
+    NOTIFICATION = 'Notification'
+
+
 class Server(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     """Use the ThreadingMixIn to handle requests in multiple threads.
     """
@@ -54,9 +61,9 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             doc = json.loads(self.rfile.read(size))
 
             message_type = self.headers.getheader('x-amz-sns-message-type')
-            if message_type == 'SubscriptionConfirmation':
+            if MessageType.CONFIRMATION == message_type:
                 _handle_confirmation(doc)
-            elif message_type == 'Notification':
+            elif MessageType.NOTIFICATION == message_type:
                 _handle_notification(doc)
             else:
                 raise Error('unsupported message type \'{0}\''
