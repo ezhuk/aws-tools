@@ -23,7 +23,8 @@ class Error(Exception):
 
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
-    parser.add_option('-l', '--load-balancer', dest='lb', help='')
+    parser.add_option('-l', '--load-balancer', dest='lb',
+        help='The name of the load balancer to deregister instances from.')
     (opts, args) = parser.parse_args()
 
     if 0 != len(args):
