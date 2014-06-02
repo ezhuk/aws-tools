@@ -33,7 +33,11 @@ def main():
 
     try:
         elb = boto.connect_elb()
+
         lb = elb.get_all_load_balancers([opts.lb])
+        if lb is None:
+            raise Error('could not find \'{0}\''.format(opts.lb))
+
         elb.deregister_instances(opts.lb, [i.id for i in lb.instances])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
