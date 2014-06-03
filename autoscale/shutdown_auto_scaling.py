@@ -35,8 +35,7 @@ def main():
         help='The name of the configuration to shutdown (e.g., TEST).')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       opts.name is None:
+    if 0 != len(args) or opts.name is None:
         parser.print_help()
         return 1
 
