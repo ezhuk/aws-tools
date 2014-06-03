@@ -58,12 +58,12 @@ def main():
     parser.add_option('-g', '--group', dest='group',
         help='Security group that will be used when creating EC2 instances. '
              'This option is required.')
-    parser.add_option('-m', '--min', dest='min',
-        default=Defaults.MIN_INSTANCES, help='The minimum number of EC2 '
-        'instances in the auto scaling group. By default it is set to 2.')
-    parser.add_option('-M', '--max', dest='max',
-        default=Defaults.MAX_INSTANCES, help='The maximum size of the auto '
-        'scaling group. By default it is set to 4.')
+    parser.add_option('-m', '--min', dest='min', default=Defaults.MIN_INSTANCES,
+        help='The minimum number of EC2 instances in the auto scaling group. '
+             'By default it is set to 2.')
+    parser.add_option('-M', '--max', dest='max', default=Defaults.MAX_INSTANCES,
+        help='The maximum size of the auto scaling group. By default it is '
+             'set to 4.')
     parser.add_option('-z', '--zone', dest='zones', action='append',
         help='The availability zone for the auto scaling group. This option '
              'is required.')
@@ -78,19 +78,18 @@ def main():
         'threshold that triggers an alarm. This option is not required and '
         'is set to 60% by default.')
     parser.add_option('-a', '--adjustment', dest='adjustment',
-        default=Defaults.ADJUSTMENT,
-        help='The number of EC2 instances by which to scale up or down. '
-             'This is set to 1 by default.')
+        default=Defaults.ADJUSTMENT, help='The number of EC2 instances by '
+        'which to scale up or down. This is set to 1 by default.')
     parser.add_option('-p', '--period', dest='period', default=Defaults.PERIOD,
         help='The evaluation period in seconds. This is optional and is set '
              'to 300 seconds by default.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       opts.name is None or \
-       opts.key is None or \
-       opts.group is None or \
-       opts.zones is None:
+    if (0 != len(args) or
+        opts.name is None or
+        opts.key is None or
+        opts.group is None or
+        opts.zones is None):
         parser.print_help()
         return 1
 
