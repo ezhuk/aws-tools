@@ -23,6 +23,8 @@ from boto.ec2.autoscale import AutoScalingGroup
 from boto.ec2.autoscale import ScalingPolicy
 from boto.ec2.cloudwatch import MetricAlarm
 
+import autoscale_settings as s
+
 
 class Error(Exception):
     pass
@@ -96,14 +98,15 @@ def main():
     try:
         autoscale = boto.connect_autoscale()
 
-        launch_config = LaunchConfiguration(name=opts.name + '-LC',
+        launch_config = LaunchConfiguration(name=opts.name +
+                s.LAUNCH_CONFIG_SUFFIX,
             image_id=opts.image,
             key_name=opts.key,
             security_groups=[opts.group],
             instance_type=opts.type)
         autoscale.create_launch_configuration(launch_config)
 
-        group_name = opts.name + '-ASG'
+        group_name = opts.name + s.GROUP_SUFFIX
         group = AutoScalingGroup(name=group_name,
             launch_config=launch_config,
             availability_zones=opts.zones,
@@ -112,7 +115,7 @@ def main():
             max_size=opts.max)
         autoscale.create_auto_scaling_group(group)
 
-        policy_up = ScalingPolicy(name=opts.name + '-SP-UP',
+        policy_up = ScalingPolicy(name=opts.name + s.POLICY_UP_SUFFIX,
             as_name=group_name,
             scaling_adjustment=opts.adjustment,
             adjustment_type='ChangeInCapacity')
@@ -120,7 +123,7 @@ def main():
 
         cloudwatch = boto.connect_cloudwatch()
 
-        alarm_high = MetricAlarm(name=opts.name + '-MA-CPU-HIGH',
+        alarm_high = MetricAlarm(name=opts.name + s.ALARM_HIGH_SUFFIX,
             alarm_actions=[policy_up],
             metric='CPUUtilization',
             namespace='AWS/EC2',
@@ -132,13 +135,13 @@ def main():
             comparison='>')
         cloudwatch.create_alarm(alarm_high)
 
-        policy_down = ScalingPolicy(name=opts.name + '-SP-DOWN',
+        policy_down = ScalingPolicy(name=opts.name + s.POLICY_DOWN_SUFFIX,
             as_name=group_name,
             scaling_adjustment=-opts.adjustment,
             adjustment_type='ChangeInCapacity')
         autoscale.create_scaling_policy(policy_down)
 
-        alarm_low = MetricAlarm(name=opts.name + '-MA-CPU-LOW',
+        alarm_low = MetricAlarm(name=opts.name + s.ALARM_LOW_SUFFIX,
             alarm_actions=[policy_down],
             metric='CPUUtilization',
             namespace='AWS/EC2',
@@ -158,3 +161,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+

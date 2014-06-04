@@ -18,15 +18,11 @@ import optparse
 import sys
 import time
 
+import autoscale_settings as s
+
 
 class Error(Exception):
     pass
-
-
-class Defaults(object):
-    """Default settings.
-    """
-    TIMEOUT = 1
 
 
 def main():
@@ -42,7 +38,7 @@ def main():
     try:
         autoscale = boto.connect_autoscale()
 
-        group_name = opts.name + '-ASG'
+        group_name = opts.name + s.GROUP_SUFFIX
         groups = autoscale.get_all_groups(names=[group_name])
         if len(groups) != 1:
             raise Error('could not find \'{0}\''.format(group_name))
@@ -58,17 +54,18 @@ def main():
             group = autoscale.get_all_groups(names=[group_name])[0]
             if not group.instances:
                 break
-            time.sleep(Defaults.TIMEOUT)
+            time.sleep(1)
 
-        autoscale.delete_policy(opts.name + '-SP-UP')
-        autoscale.delete_policy(opts.name + '-SP-DOWN')
+        autoscale.delete_policy(opts.name + s.POLICY_UP_SUFFIX)
+        autoscale.delete_policy(opts.name + s.POLICY_DOWN_SUFFIX)
         autoscale.delete_auto_scaling_group(group_name)
-        autoscale.delete_launch_configuration(opts.name + '-LC')
+        autoscale.delete_launch_configuration(opts.name +
+            s.LAUNCH_CONFIG_SUFFIX)
 
         cloudwatch = boto.connect_cloudwatch()
 
-        cloudwatch.delete_alarms([opts.name + '-MA-CPU-HIGH',
-            opts.name + '-MA-CPU-LOW'])
+        cloudwatch.delete_alarms([opts.name + s.ALARM_HIGH_SUFFIX,
+            opts.name + s.ALARM_LOW_SUFFIX])
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
@@ -78,3 +75,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
