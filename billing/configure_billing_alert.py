@@ -49,9 +49,9 @@ def main():
              'charges statistic is applied.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       opts.email is None or \
-       opts.threshold is None:
+    if (0 != len(args) or
+        opts.email is None or
+        opts.threshold is None):
         parser.print_help()
         return 1
 
@@ -94,3 +94,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+

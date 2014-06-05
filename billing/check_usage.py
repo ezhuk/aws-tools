@@ -77,9 +77,9 @@ def connect(service, regions):
 
 def print_items(items, labels):
     if 1 == len(labels):
-        return '{0} {1}{2}'.format(items, labels[0], 's'[1==items:])
+        return '{0} {1}{2}'.format(items, labels[0], 's'[1 == items:])
     else:
-        return '{0} {1}'.format(items, labels[1!=items])
+        return '{0} {1}'.format(items, labels[1 != items])
 
 
 def flatten(x):
@@ -459,8 +459,7 @@ def main():
         help='The name of the region to usage for.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       opts.bucket is None:
+    if 0 != len(args) or opts.bucket is None:
         parser.print_help()
         return 1
 
@@ -509,3 +508,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
