@@ -107,8 +107,8 @@ def main():
         help='A certificate file to be used when SSL is enabled.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       (opts.ssl and (opts.cert is None or opts.key is None)):
+    if (0 != len(args) or
+        (opts.ssl and (opts.cert is None or opts.key is None))):
         parser.print_help()
         return 1
 
@@ -130,3 +130,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
