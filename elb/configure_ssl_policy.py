@@ -39,8 +39,7 @@ def main():
              'required and is set to 443 by default.')
     (opts, args) = parser.parse_args()
 
-    if len(args) != 0 or \
-       opts.lbs is None:
+    if 0 != len(args) or opts.lbs is None:
         parser.print_help()
         return 1
 
@@ -98,3 +97,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
