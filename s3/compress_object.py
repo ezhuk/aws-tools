@@ -52,20 +52,18 @@ def main():
             if not a.startswith('s3://'):
                 raise Error('unsupported object path!')
             parts = a[5:].split('/')
-            b = parts[0]
-            k = '/'.join(parts[1:]) if 1 < len(parts) else ''
-
-            bucket = s3.get_bucket(b)
-            key = bucket.get_key(k)
+            bucket = s3.get_bucket(parts[0])
+            key = bucket.get_key('/'.join(parts[1:]) if 1 < len(parts) else '')
             _, name = os.path.split(key.name)
             key.get_contents_to_filename(name)
 
-            out = name + '.gz'
-            compress_file(name, out)
+            src = name + '.gz'
+            compress_file(name, src)
             os.remove(name)
 
-            upload_file(bucket, key.name + '.gz', out)
-            os.remove(out)
+            dst = key.name + '.gz'
+            upload_file(bucket, dst, src)
+            os.remove(src)
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
         return 1
