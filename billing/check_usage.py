@@ -265,7 +265,12 @@ def get_datapipeline_usage(regions):
     cs = connect(boto.datapipeline, regions)
     pipelines = list(flatten(c.list_pipelines()['pipelineIdList']
         for c in cs))
-    print print_items(len(pipelines), ['Data Pipeline'])
+    objects = list(flatten(c.get_pipeline_definition(p)['pipelineObjects']
+        for c in cs for p in pipelines))
+    print '{0}{1}' \
+        .format(print_items(len(pipelines), ['Data Pipeline']),
+            ' [{0}]'.format(print_items(objects, ['object']))
+            if 0 != len(objects) else '')
 
 
 def get_emr_usage(regions):
