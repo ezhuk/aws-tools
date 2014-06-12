@@ -131,6 +131,17 @@ It is supposed to run on the endpoint that is going to be subscribed.
 ./confirm_subscription.py --port 8080
 ```
 
+### 7. Simple Queue Service
+
+#### delete_messages.py
+
+This script allows to purge all outstanding messages from the specified Simple Queue
+Service (SQS) queue.
+
+```bash
+./delete_messages.py --queue MyQueue
+```
+
 ## License
 
 Licensed under the [MIT license](LICENSE).
