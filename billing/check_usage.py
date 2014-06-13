@@ -82,6 +82,11 @@ def print_items(items, labels):
         return '{0} {1}'.format(items, labels[1 != items])
 
 
+def print_two_items(items1, labels1, items2, labels2):
+    return '{0}{1}'.format(print_items(items1, labels1),
+        ' [{0} {1}]'.format(items2, labels2) if 0 != items2 else '')
+
+
 def flatten(x):
     return itertools.chain.from_iterable(x)
 
@@ -92,8 +97,7 @@ def get_ec2_usage(regions):
         for x in c.get_all_reservations()))
     running = sum(InstanceState.RUNNING == i.state_code
         for i in instances)
-    print '{0}{1}'.format(print_items(len(instances), ['EC2 Instance']),
-        ' [{0} running]'.format(running) if 0 != running else '')
+    print print_two_items(len(instances), ['EC2 Instances'], running, 'running')
 
     print print_items(sum(len(c.get_all_reserved_instances()) for c in cs),
         ['EC2 Reserved Instance'])
@@ -102,8 +106,7 @@ def get_ec2_usage(regions):
 
     volumes = list(flatten(c.get_all_volumes() for c in cs))
     size = sum(v.size for v in volumes)
-    print '{0}{1}'.format(print_items(len(volumes), ['EBS Volume']),
-        ' [{0} GB]'.format(size) if 0 != size else '')
+    print print_two_items(len(volumes), ['EBS Volume'], size, 'GB')
 
     print print_items(sum(len(c.get_all_snapshots(owner=['self'])) for c in cs),
         ['EBS Snapshot'])
@@ -138,17 +141,15 @@ def get_autoscale_usage(regions):
 def get_elb_usage(regions):
     cs = connect(boto.ec2.elb, regions)
     balancers = list(flatten(c.get_all_load_balancers() for c in cs))
-    print '{0} [{1}]' \
-        .format(print_items(len(balancers), ['Elastic Load Balancer']),
-            print_items(sum(b.instances for b in balancers), ['instance']))
+    print print_two_items(len(balancers), ['Elastic Load Balancer'],
+        sum(b.instances for b in balancers), 'instance')
 
 
 def get_vpc_usage(regions):
     cs = connect(boto.vpc, regions)
     vpcs = list(flatten(c.get_all_vpcs() for c in cs))
-    print '{0} [{1} default]' \
-        .format(print_items(len(vpcs), ['Virtual Private Cloud']),
-            sum(v.is_default for v in vpcs))
+    print print_two_items(len(vpcs), ['Virtual Private Cloud'],
+        sum(v.is_default for v in vpcs), 'default')
     print print_items(sum(len(c.get_all_internet_gateways()) for c in cs),
         ['Internet Gateway'])
     print print_items(sum(len(c.get_all_customer_gateways()) for c in cs),
@@ -162,9 +163,8 @@ def get_route53_usage(regions):
     cs = connect(boto.route53, regions)
     zones = dict((x.id, x) for c in cs for x in c.get_zones())
     records = sum(len(v.get_records()) for k, v in zones.iteritems())
-    print '{0}{1}'.format(print_items(len(zones), ['Route53 Hosted Zone']),
-        ' [{0}]'.format(print_items(records, ['record']))
-            if 0 != records else '')
+    print print_two_items(len(zones), ['Route53 Hosted Zone'],
+        records, 'record')
 
 
 def get_s3_usage(regions):
@@ -194,10 +194,8 @@ def get_cloudfront_usage():
     distrs = c.get_all_distributions()
     objects = len(list(flatten(d.get_distribution().get_objects()
         for d in distrs)))
-    print '{0}{1}' \
-        .format(print_items(len(distrs), ['CloudFront Distribution']),
-            ' [{0}]'.format(print_items(objects, ['object']))
-                if 0 != objects else '')
+    print print_two_items(len(distrs), ['CloudFront Distribution'],
+        objects, 'object')
 
 
 def get_sdb_usage(regions):
