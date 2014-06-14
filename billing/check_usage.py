@@ -211,9 +211,8 @@ def get_rds_usage(regions):
         ['DescribeDBInstancesResult']
         ['DBInstances'] for c in cs))
     available = sum(i['DBInstanceStatus'] == 'available' for i in instances)
-    print '{0}{1}' \
-        .format(print_items(len(instances), ['RDS Instance']),
-            ' [{0} available]'.format(available) if 0 != available else '')
+    print print_two_items(len(instances), ['RDS Instance'],
+        available, 'available')
     print print_items(sum(len(c.describe_reserved_db_instances()
         ['DescribeReservedDBInstancesResponse']
         ['DescribeReservedDBInstancesResult']
@@ -229,10 +228,8 @@ def get_dynamodb_usage(regions):
     tables = list(flatten([boto.dynamodb2.table.Table(t)] for c in cs
             for t in c.list_tables()['TableNames']))
     items = sum(t.count() for t in tables)
-    print '{0}{1}' \
-        .format(print_items(len(tables), ['DynamoDB Table']),
-            ' [{0}]'.format(print_items(items, ['item']))
-            if 0 != items else '')
+    print print_two_items(len(tables), ['DynamoDB Table'],
+        items, 'item')
 
 
 def get_elasticache_usage(regions):
