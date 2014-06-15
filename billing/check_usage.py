@@ -262,10 +262,8 @@ def get_datapipeline_usage(regions):
         for c in cs))
     objects = list(flatten(c.get_pipeline_definition(p)['pipelineObjects']
         for c in cs for p in pipelines))
-    print '{0}{1}' \
-        .format(print_items(len(pipelines), ['Data Pipeline']),
-            ' [{0}]'.format(print_items(objects, ['object']))
-            if 0 != len(objects) else '')
+    print print_two_items(len(pipelines), ['Data Pipeline'],
+        len(objects), 'object')
 
 
 def get_emr_usage(regions):
