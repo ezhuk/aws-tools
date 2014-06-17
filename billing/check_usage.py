@@ -331,10 +331,7 @@ def get_sqs_usage(regions):
     cs = connect(boto.sqs, regions)
     queues = list(flatten(c.get_all_queues() for c in cs))
     messages = sum(q.count() for q in queues)
-    print '{0}{1}' \
-        .format(print_items(len(queues), ['SQS Queue']),
-            ' [{0}]'.format(print_items(messages, ['message']))
-                if 0 != messages else '')
+    print print_two_items(len(queues), ['SQS Queue'], messages, 'message')
 
 
 def get_swf_usage(regions):
