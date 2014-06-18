@@ -381,9 +381,8 @@ def get_cloudwatch_usage(regions):
     cs = connect(boto.ec2.cloudwatch, regions)
     alarms = list(flatten(c.describe_alarms() for c in cs))
     triggered = sum(a.state_value == MetricAlarm.ALARM for a in alarms)
-    print '{0}{1}' \
-        .format(print_items(len(alarms), ['CloudWatch Alarm']),
-            ' [{0} triggered]'.format(triggered) if 0 != triggered else '')
+    print print_two_items(len(alarms), ['CloudWatch Alarm'],
+        triggered, 'triggered')
 
 
 def get_opsworks_usage(regions):
