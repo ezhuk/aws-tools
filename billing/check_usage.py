@@ -410,9 +410,7 @@ def _get_billing_data(bucket_name, time_period, regions):
     return data
 
 
-def get_aws_cost(bucket_name, time_period, regions):
-    data = _get_billing_data(bucket_name, time_period, regions)
-
+def _parse_billing_data(data):
     cost = dict()
     total = list()
 
@@ -430,6 +428,13 @@ def get_aws_cost(bucket_name, time_period, regions):
             total.extend([['Cost', float(row[24]), row[23]],
                 ['Credit', float(row[25]), row[23]],
                 ['Total', float(row[28]), row[23]]])
+
+    return cost, total
+
+
+def get_aws_cost(bucket_name, time_period, regions):
+    data = _get_billing_data(bucket_name, time_period, regions)
+    cost, total = _parse_billing_data(data)
 
     print '---'
     for k, v in cost.items():
