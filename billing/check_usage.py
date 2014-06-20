@@ -87,6 +87,11 @@ def print_two_items(items1, labels1, items2, labels2):
         ' [{0} {1}]'.format(items2, labels2) if 0 != items2 else '')
 
 
+def print_two_items2(items1, labels1, items2, labels2):
+    return '{0}{1}'.format(print_items(items1, labels1),
+        ' [{0}]'.format(print_items(items2, labels2)) if 0 != items2 else '')
+
+
 def flatten(x):
     return itertools.chain.from_iterable(x)
 
@@ -141,8 +146,8 @@ def get_autoscale_usage(regions):
 def get_elb_usage(regions):
     cs = connect(boto.ec2.elb, regions)
     balancers = list(flatten(c.get_all_load_balancers() for c in cs))
-    print print_two_items(len(balancers), ['Elastic Load Balancer'],
-        sum(b.instances for b in balancers), 'instance')
+    print print_two_items2(len(balancers), ['Elastic Load Balancer'],
+        sum(b.instances for b in balancers), ['instance'])
 
 
 def get_vpc_usage(regions):
@@ -163,8 +168,8 @@ def get_route53_usage(regions):
     cs = connect(boto.route53, regions)
     zones = dict((x.id, x) for c in cs for x in c.get_zones())
     records = sum(len(v.get_records()) for k, v in zones.iteritems())
-    print print_two_items(len(zones), ['Route53 Hosted Zone'],
-        records, 'record')
+    print print_two_items2(len(zones), ['Route53 Hosted Zone'],
+        records, ['record'])
 
 
 def get_s3_usage(regions):
