@@ -199,8 +199,8 @@ def get_cloudfront_usage():
     distrs = c.get_all_distributions()
     objects = len(list(flatten(d.get_distribution().get_objects()
         for d in distrs)))
-    print print_two_items(len(distrs), ['CloudFront Distribution'],
-        objects, 'object')
+    print print_two_items2(len(distrs), ['CloudFront Distribution'],
+        objects, ['object'])
 
 
 def get_sdb_usage(regions):
@@ -233,8 +233,8 @@ def get_dynamodb_usage(regions):
     tables = list(flatten([boto.dynamodb2.table.Table(t)] for c in cs
             for t in c.list_tables()['TableNames']))
     items = sum(t.count() for t in tables)
-    print print_two_items(len(tables), ['DynamoDB Table'],
-        items, 'item')
+    print print_two_items2(len(tables), ['DynamoDB Table'],
+        items, ['item'])
 
 
 def get_elasticache_usage(regions):
@@ -267,8 +267,8 @@ def get_datapipeline_usage(regions):
         for c in cs))
     objects = list(flatten(c.get_pipeline_definition(p)['pipelineObjects']
         for c in cs for p in pipelines))
-    print print_two_items(len(pipelines), ['Data Pipeline'],
-        len(objects), 'object')
+    print print_two_items2(len(pipelines), ['Data Pipeline'],
+        len(objects), ['object'])
 
 
 def get_emr_usage(regions):
@@ -286,8 +286,8 @@ def get_kinesis_usage(regions):
     shards = sum(len(c.describe_stream(s)
         ['StreamDescription']
         ['Shards']) for c in cs for s in streams)
-    print print_two_items(len(streams), ['Kinesis Stream'],
-        shards, 'shard')
+    print print_two_items2(len(streams), ['Kinesis Stream'],
+        shards, ['shard'])
 
 
 def get_cloudsearch_usage(regions):
@@ -336,7 +336,7 @@ def get_sqs_usage(regions):
     cs = connect(boto.sqs, regions)
     queues = list(flatten(c.get_all_queues() for c in cs))
     messages = sum(q.count() for q in queues)
-    print print_two_items(len(queues), ['SQS Queue'], messages, 'message')
+    print print_two_items2(len(queues), ['SQS Queue'], messages, ['message'])
 
 
 def get_swf_usage(regions):
