@@ -395,7 +395,7 @@ def get_opsworks_usage(regions):
     print print_items(len(c.describe_stacks()['Stacks']), ['OpsWorks Stack'])
 
 
-def _get_time_period(period)
+def _get_time_period(period):
     return time.strftime('%Y-%m', time.gmtime()) if period is None else period
 
 
@@ -405,11 +405,10 @@ def _get_billing_data(bucket_name, time_period, regions):
     if bucket is None:
         raise Error('could not find \'{0}\''.format(bucket_name))
 
-    period = _get_time_period(time_period)
-
     data = ''
     for key in bucket.list():
-        if re.match(r'(\w+)-aws-billing-csv-{0}.csv'.format(period), key.name):
+        if re.match(r'(\w+)-aws-billing-csv-{0}.csv' \
+                .format(_get_time_period(time_period)), key.name):
             data = key.get_contents_as_string()
             break
     if not data:
