@@ -31,9 +31,12 @@ def main():
         return 1
 
     try:
-        ec2 = boto.connect_ec2()
+        c = boto.connect_ec2()
+        images = ec2.get_all_images(image_ids=opts.images)
+        if not images:
+            raise Error('could not find \'{0}\''.format(opts.images))
 
-        for i in ec2.get_all_images(image_ids=opts.images):
+        for i in images:
             print '{0}: {1}'.format(i.id, i.state)
     except (Error, Exception), err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))
