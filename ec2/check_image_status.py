@@ -32,7 +32,7 @@ def main():
 
     try:
         c = boto.connect_ec2()
-        images = ec2.get_all_images(image_ids=opts.images)
+        images = c.get_all_images(image_ids=opts.images)
         if not images:
             raise Error('could not find \'{0}\''.format(opts.images))
 
