@@ -32,10 +32,9 @@ def main():
         return 1
 
     try:
-        ec2 = boto.connect_ec2()
-
+        c = boto.connect_ec2()
         while True:
-            snapshots = ec2.get_all_snapshots(snapshot_ids=opts.snapshots)
+            snapshots = c.get_all_snapshots(snapshot_ids=opts.snapshots)
             if not snapshots:
                 raise Error('could not find \'{0}\''.format(opts.snapshots))
 
