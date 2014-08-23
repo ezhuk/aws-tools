@@ -17,7 +17,7 @@ exceeds the maximum threshold or goes below the minimum threshold respectively.
 ```bash
 ./configure_auto_scaling.py \
     --name TEST \
-    --image ami-a43909e1 \
+    --image ami-a8d3d4ed \
     --type t1.micro \
     --key MyKeyPair \
     --group MySecurityGroup \
@@ -25,7 +25,7 @@ exceeds the maximum threshold or goes below the minimum threshold respectively.
     --max 8 \
     --min-threshold 30 \
     --max-threshold 70 \
-    --adjustment 2 \
+    --adjustment 1 \
     --zone us-west-1a \
     --load-balancer MyLoadBalancer
 ```
