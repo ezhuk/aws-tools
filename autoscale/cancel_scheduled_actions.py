@@ -32,8 +32,7 @@ def main():
 
     try:
         c = boto.connect_autoscale()
-        actions = c.get_all_scheduled_actions(as_group=opts.group)
-        for a in actions:
+        for a in c.get_all_scheduled_actions(as_group=opts.group):
             c.delete_scheduled_action(a, opts.group)
     except Error, err:
         sys.stderr.write('[ERROR] {0}\n'.format(err))

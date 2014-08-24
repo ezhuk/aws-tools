@@ -33,7 +33,7 @@ class Error(Exception):
 class Defaults(object):
     """Default settings.
     """
-    IMAGE = 'ami-7aba833f'
+    IMAGE = 'ami-a8d3d4ed'
     TYPE = 't1.micro'
     MIN_INSTANCES = 2
     MAX_INSTANCES = 4
