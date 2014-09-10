@@ -43,6 +43,16 @@ class Defaults(object):
     PERIOD = 300
 
 
+def _create_launch_configuration(c, opts):
+    lc = LaunchConfiguration(name=opts.name + s.LAUNCH_CONFIG_SUFFIX,
+            image_id=opts.image,
+            key_name=opts.key,
+            security_groups=[opts.group],
+            instance_type=opts.type)
+    c.create_launch_configuration(lc)
+    return lc
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-n', '--name', dest='name',
@@ -96,19 +106,13 @@ def main():
         return 1
 
     try:
-        autoscale = boto.connect_autoscale()
+        c = boto.connect_autoscale()
 
-        launch_config = LaunchConfiguration(name=opts.name +
-                s.LAUNCH_CONFIG_SUFFIX,
-            image_id=opts.image,
-            key_name=opts.key,
-            security_groups=[opts.group],
-            instance_type=opts.type)
-        autoscale.create_launch_configuration(launch_config)
+        lc = _create_launch_configuration(c, opts)
 
         group_name = opts.name + s.GROUP_SUFFIX
         group = AutoScalingGroup(name=group_name,
-            launch_config=launch_config,
+            launch_config=lc,
             availability_zones=opts.zones,
             load_balancers=opts.lbs,
             min_size=opts.min,
