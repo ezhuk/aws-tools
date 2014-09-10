@@ -82,6 +82,14 @@ monitoring must be enabled in billing preferences prior to configuring this aler
 
 ### 3. Elastic Compute Cloud
 
+#### check_image_status.py
+
+Displays the current status of one or more AMIs.
+
+```bash
+./check_image_status.py --image ami-012345ab
+```
+
 #### check_snapshot_status.py
 
 Checks the current status of one or more existing AWS Elastic Block Store (EBS)
