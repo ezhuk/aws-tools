@@ -99,6 +99,14 @@ snapshots and displays progress bar(s) with percentage of completion.
 ./check_snapshot_status.py --snapshot snap-012345ab
 ```
 
+#### check_volume_status.py
+
+Shows the current status of one or more AWS Elastic Block Store (EBS) volumes.
+
+```bash
+./check_volume_status.py --volume vol-012345ab
+```
+
 ### 4. Elastic Load Balancing
 
 #### configure_ssl_policy.py
