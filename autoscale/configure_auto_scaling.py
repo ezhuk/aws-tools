@@ -53,6 +53,17 @@ def _create_launch_configuration(c, opts):
     return lc
 
 
+def _create_autoscaling_group(c, lc, opts):
+    g = AutoScalingGroup(name=opts.name + s.GROUP_SUFFIX,
+            launch_config=lc,
+            availability_zones=opts.zones,
+            load_balancers=opts.lbs,
+            min_size=opts.min,
+            max_size=opts.max)
+    c.create_auto_scaling_group(g)
+    return g
+
+
 def main():
     parser = optparse.OptionParser('Usage: %prog [options]')
     parser.add_option('-n', '--name', dest='name',
@@ -109,21 +120,13 @@ def main():
         c = boto.connect_autoscale()
 
         lc = _create_launch_configuration(c, opts)
-
-        group_name = opts.name + s.GROUP_SUFFIX
-        group = AutoScalingGroup(name=group_name,
-            launch_config=lc,
-            availability_zones=opts.zones,
-            load_balancers=opts.lbs,
-            min_size=opts.min,
-            max_size=opts.max)
-        autoscale.create_auto_scaling_group(group)
+        g = _create_autoscaling_group(c, lc, opts)
 
         policy_up = ScalingPolicy(name=opts.name + s.POLICY_UP_SUFFIX,
-            as_name=group_name,
+            as_name=g.name,
             scaling_adjustment=opts.adjustment,
             adjustment_type='ChangeInCapacity')
-        autoscale.create_scaling_policy(policy_up)
+        c.create_scaling_policy(policy_up)
 
         cloudwatch = boto.connect_cloudwatch()
 
@@ -132,7 +135,7 @@ def main():
             metric='CPUUtilization',
             namespace='AWS/EC2',
             statistic='Average',
-            dimensions={'AutoScalingGroupName': group_name},
+            dimensions={'AutoScalingGroupName': g.name},
             period=opts.period,
             evaluation_periods=1,
             threshold=int(opts.max_threshold),
@@ -140,7 +143,7 @@ def main():
         cloudwatch.create_alarm(alarm_high)
 
         policy_down = ScalingPolicy(name=opts.name + s.POLICY_DOWN_SUFFIX,
-            as_name=group_name,
+            as_name=g.name,
             scaling_adjustment=-opts.adjustment,
             adjustment_type='ChangeInCapacity')
         autoscale.create_scaling_policy(policy_down)
@@ -150,7 +153,7 @@ def main():
             metric='CPUUtilization',
             namespace='AWS/EC2',
             statistic='Average',
-            dimensions={'AutoScalingGroupName': group_name},
+            dimensions={'AutoScalingGroupName': g.name},
             period=opts.period,
             evaluation_periods=1,
             threshold=int(opts.min_threshold),
