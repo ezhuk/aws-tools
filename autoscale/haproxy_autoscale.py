@@ -22,24 +22,24 @@ import sys
 import time
 
 
-def get_running_instances(groups):
+def _get_running_instances(groups):
     """Retrieves a list of currently running EC2 instances that belong
     to the specified security groups.
     """
-    ec2 = boto.connect_ec2()
-    return [i.private_dns_name for i in ec2.get_only_instances(
-        filters={'instance.group-id': groups,
-                 'instance-state-name': 'running'})]
+    c = boto.connect_ec2()
+    return [i.private_dns_name for i in c.get_only_instances(filters={
+                'instance.group-id': groups,
+                'instance-state-name': 'running'})]
 
 
-def read_file(path):
+def _read_file(path):
     """Returns the content of an entire file.
     """
     with open(path) as f:
         return f.read()
 
 
-def save_file(path, data):
+def _save_file(path, data):
     """Writes data into a file specified by its path.
     """
     with open(path, 'w') as f:
@@ -47,14 +47,14 @@ def save_file(path, data):
             f.write(line)
 
 
-def restart_haproxy(config):
+def _restart_haproxy(config):
     """Restarts haproxy with zero downtime.
     """
     pidfile = '/var/run/haproxy.pid'
     proc = subprocess.Popen(['/usr/sbin/haproxy',
         '-f', config,
         '-p', pidfile,
-        '-sf', read_file(pidfile)],
+        '-sf', _read_file(pidfile)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
     out, err = proc.communicate()
@@ -87,15 +87,15 @@ def main():
             else:
                 config.append(line)
 
-    new = get_running_instances(opts.groups)
+    new = _get_running_instances(opts.groups)
     if sorted(new) != sorted(old):
         for pp, item in enumerate(new):
             config.append('    server app{0} {1} check\n'.format(pp, item))
 
         os.rename(opts.config, opts.config + time.strftime('.%Y%m%d%H%M%S',
             time.gmtime()))
-        save_file(opts.config, config)
-        restart_haproxy(opts.config)
+        _save_file(opts.config, config)
+        _restart_haproxy(opts.config)
 
     return 0
 
